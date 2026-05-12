@@ -66,6 +66,9 @@ jobs:
       - name: Configurar Docker para Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
 
+      - name: Configurar buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Metadata de la imagen
         id: meta
         uses: docker/metadata-action@v5
@@ -74,9 +77,6 @@ jobs:
           tags: |
             type=sha,prefix=,format=short
             type=raw,value=latest-develop
-      
-      - name: Configurar buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Build y Push imagen Docker
         uses: docker/build-push-action@v5
@@ -120,6 +120,9 @@ jobs:
 
       - name: Configurar Docker para Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Configurar buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Metadata de la imagen
         id: meta
