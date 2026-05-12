@@ -74,6 +74,9 @@ jobs:
           tags: |
             type=sha,prefix=,format=short
             type=raw,value=latest-develop
+      
+      - name: Configurar buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build y Push imagen Docker
         uses: docker/build-push-action@v5
