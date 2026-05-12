@@ -151,7 +151,7 @@ jobs:
           service: football-api-production
           region: ${{ env.REGION }}
           image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ steps.meta.outputs.version }}
-          flags: --allow-unauthenticated
+          flags: '--allow-unauthenticated'
 
       - name: URL producción
         run: echo "Producción desplegada en ${{ steps.deploy.outputs.url }}"
