@@ -94,7 +94,7 @@ jobs:
         with:
           service: football-api-develop
           region: ${{ env.REGION }}
-          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ steps.meta.outputs.version }}
           flags: --allow-unauthenticated
 
       - name: URL develop
@@ -149,7 +149,7 @@ jobs:
         with:
           service: football-api-production
           region: ${{ env.REGION }}
-          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ steps.meta.outputs.version }}
           flags: --allow-unauthenticated
 
       - name: URL producción
