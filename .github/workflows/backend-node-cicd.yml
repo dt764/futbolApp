@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
     paths:
       - 'backend-node/**'
-      - '.github/workflows/backend-node-ci.yml'
+      - '.github/workflows/backend-node-cicd.yml'
   pull_request:
     branches: [main, develop]
     paths:
