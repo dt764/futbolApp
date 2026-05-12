@@ -96,7 +96,7 @@ jobs:
           service: football-api-develop
           region: ${{ env.REGION }}
           image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ steps.meta.outputs.version }}
-          flags: --allow-unauthenticated
+          flags: '--allow-unauthenticated'
 
       - name: URL develop
         run: echo "Develop desplegado en ${{ steps.deploy.outputs.url }}"
