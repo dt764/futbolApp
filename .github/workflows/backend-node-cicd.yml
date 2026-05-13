@@ -24,6 +24,13 @@ jobs:
     defaults:
       run:
         working-directory: backend-node
+    
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,6 +50,9 @@ jobs:
 
       - name: Run tests
         run: npm test
+        env:
+          NODE_ENV: test
+          MONGO_URI_TEST: mongodb://localhost:27017/futbolapp-test
 
       - name: Build Docker image
         run: docker build -t football-api .
