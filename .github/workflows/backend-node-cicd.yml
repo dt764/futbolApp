@@ -43,8 +43,6 @@ jobs:
 
       - name: Run tests
         run: npm test
-        env:
-          MONGO_URI: mongodb://localhost:27017/test-db
 
       - name: Build Docker image
         run: docker build -t football-api .
