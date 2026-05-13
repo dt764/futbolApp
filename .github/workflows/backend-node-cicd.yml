@@ -97,6 +97,8 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ steps.meta.outputs.version }}
           flags: '--allow-unauthenticated'
+          env_vars: |
+            MONGO_URI=${{ secrets.MONGO_URI }}
 
       - name: URL develop
         run: echo "Develop desplegado en ${{ steps.deploy.outputs.url }}"
@@ -152,6 +154,8 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-api:${{ steps.meta.outputs.version }}
           flags: '--allow-unauthenticated'
+          env_vars: |
+            MONGO_URI=${{ secrets.MONGO_URI }}
 
       - name: URL producción
         run: echo "Producción desplegada en ${{ steps.deploy.outputs.url }}"

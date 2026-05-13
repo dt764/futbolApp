@@ -2,8 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+require('dotenv').config();
+const connectDB = require('./app_api/models/db');
 
 const app = express();
+
+connectDB();
 
 app.use(cors());
 app.use(helmet());
