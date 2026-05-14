@@ -34,6 +34,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necesario para algunos analizadores que revisan historial
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -43,10 +45,22 @@ jobs:
           cache-dependency-path: backend-node/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci # 'ci' es más estricto y rápido que 'install' en pipelines
 
-      - name: Run lint
+      - name: 🛡️ Audit dependencies
+        run: npm audit --audit-level=high
+        # Esto fallará si hay vulnerabilidades de nivel alto o crítico
+
+      - name: 🔍 Run Lint (ESLint)
         run: npm run lint
+
+      - name: 🔑 Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+          path: ./
+
+      # --------------------------------------------------
 
       - name: Run tests
         run: npm test
@@ -54,7 +68,7 @@ jobs:
           NODE_ENV: test
           MONGO_URI_TEST: mongodb://localhost:27017/futbolapp-test
 
-      - name: Build Docker image
+      - name: Build Docker image (Local check)
         run: docker build -t football-api .
 
   deploy-develop:

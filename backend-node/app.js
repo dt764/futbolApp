@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+const authRoutes = require('./app_api/routes/authRoutes');
+
 const app = express();
 
 app.use(cors());
@@ -15,6 +17,8 @@ app.get('/health', (req, res) => {
     status: 'ok'
   });
 });
+
+app.use('/api/auth', authRoutes);
 
 module.exports = app;
 
