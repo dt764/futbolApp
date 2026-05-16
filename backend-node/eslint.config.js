@@ -12,7 +12,8 @@ export default [
     // Configuramos el plugin de Node para que sea menos estricto con los imports de desarrollo
     settings: {
       n: {
-        allowModules: ["@eslint/js", "globals", "eslint-plugin-security", "eslint-plugin-n"]
+        allowModules: ["@eslint/js", "globals", "eslint-plugin-security", "eslint-plugin-n"],
+        version: ">=22.0.0"
       }
     },
     languageOptions: {

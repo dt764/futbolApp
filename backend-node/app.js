@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 const authRoutes = require('./app_api/routes/authRoutes');
+const playerRoutes = require('./app_api/routes/playerRoutes');
+const commentRoutes = require('./app_api/routes/commentRoutes');
 
 const app = express();
 
@@ -19,6 +21,8 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/players', playerRoutes);
+app.use('/api/comments', commentRoutes);
 
 module.exports = app;
 
