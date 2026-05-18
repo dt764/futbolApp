@@ -9,10 +9,7 @@ const test = async () => {
   const players = await Player.find({ source: 'api' }).lean();
 
   if (players.length < 11) {
-    console.error(`Solo hay ${players.length} jugadores en BD. Necesitas al menos 11.`);
-    console.error('Importa más jugadores primero o usa seed manual.');
-    await mongoose.disconnect();
-    process.exit(1);
+    throw new Error(`Solo hay ${players.length} jugadores en BD. Necesitas al menos 11.`);
   }
 
   const playersList = players.map(p => ({
@@ -38,5 +35,4 @@ const test = async () => {
 
 test().catch(err => {
   console.error('Error:', err.message);
-  process.exit(1);
 });

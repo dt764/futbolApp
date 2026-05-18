@@ -26,7 +26,6 @@ const request = require('supertest');
 const app = require('../app');
 const Player = require('../app_api/models/Player');
 const User = require('../app_api/models/User');
-const { createTestUser } = require('./helpers/auth');
 const firebaseMock = require('../app_api/config/firebase');
 const groqMock = require('../app_api/services/groq');
 
