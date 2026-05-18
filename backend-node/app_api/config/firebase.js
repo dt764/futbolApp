@@ -8,6 +8,9 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
   serviceAccount = require(filePath);
 } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} else if (process.env.FIREBASE_SERVICE_ACCOUNT_B64) {
+  const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_B64, 'base64').toString('utf-8');
+  serviceAccount = JSON.parse(decoded);
 }
 
 if (!serviceAccount) {
