@@ -42,7 +42,10 @@ const getById = async (req, res) => {
       return res.status(404).json({ error: 'Jugador no encontrado' });
     }
     res.json({ player });
-  } catch {
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Jugador no encontrado' });
+    }
     res.status(500).json({ error: 'Error al obtener el jugador' });
   }
 };
@@ -142,7 +145,10 @@ const update = async (req, res) => {
     }
 
     res.json({ player });
-  } catch {
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Jugador no encontrado' });
+    }
     res.status(500).json({ error: 'Error al actualizar el jugador' });
   }
 };
@@ -156,7 +162,10 @@ const remove = async (req, res) => {
     }
 
     res.json({ message: 'Jugador eliminado correctamente' });
-  } catch {
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Jugador no encontrado' });
+    }
     res.status(500).json({ error: 'Error al eliminar el jugador' });
   }
 };

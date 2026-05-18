@@ -6,7 +6,10 @@ const listByPlayer = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.json({ comments });
-  } catch {
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Jugador no encontrado' });
+    }
     res.status(500).json({ error: 'Error al obtener comentarios' });
   }
 };
@@ -36,7 +39,10 @@ const create = async (req, res) => {
     });
 
     res.status(201).json({ comment });
-  } catch {
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Jugador no encontrado' });
+    }
     res.status(500).json({ error: 'Error al crear el comentario' });
   }
 };
@@ -50,7 +56,10 @@ const remove = async (req, res) => {
     }
 
     res.json({ message: 'Comentario eliminado correctamente' });
-  } catch {
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Comentario no encontrado' });
+    }
     res.status(500).json({ error: 'Error al eliminar el comentario' });
   }
 };

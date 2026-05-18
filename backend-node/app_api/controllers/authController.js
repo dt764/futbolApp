@@ -1,16 +1,41 @@
 const { getAuth } = require('../config/firebase');
 const User = require('../models/User');
 
-const login = async (req, res) => {
-  const { idToken } = req.body;
-
-  if (!idToken) {
-    return res.status(400).json({ error: 'idToken es requerido' });
+const signInWithFirebase = async (email, password) => {
+  const apiKey = process.env.FIREBASE_API_KEY;
+  if (!apiKey) {
+    throw new Error('FIREBASE_API_KEY no configurada en .env');
   }
 
+  const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, returnSecureToken: true }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error?.message || 'Error al autenticar con Firebase');
+  }
+
+  return data.idToken;
+};
+
+const login = async (req, res) => {
+  const { idToken, email, password } = req.body;
+
   try {
+    let token = idToken;
+
+    if (!token) {
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Requiere idToken o email+password' });
+      }
+      token = await signInWithFirebase(email, password);
+    }
+
     const auth = getAuth();
-    const decoded = await auth.verifyIdToken(idToken);
+    const decoded = await auth.verifyIdToken(token);
 
     let user = await User.findOne({ uid: decoded.uid });
 
@@ -23,10 +48,14 @@ const login = async (req, res) => {
     }
 
     res.json({
+      token,
       user: { uid: user.uid, email: user.email, displayName: user.displayName, role: user.role },
     });
-  } catch {
-    res.status(401).json({ error: 'Token de Firebase inválido o expirado' });
+  } catch (err) {
+    if (err.message === 'FIREBASE_API_KEY no configurada en .env') {
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(401).json({ error: 'Credenciales inválidas' });
   }
 };
 

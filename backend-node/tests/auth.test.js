@@ -19,10 +19,10 @@ describe('POST /api/auth/login', () => {
     firebaseMock.__mockVerifyIdToken.mockReset();
   });
 
-  it('debería devolver 400 si falta idToken', async () => {
+  it('debería devolver 400 si faltan credenciales', async () => {
     const res = await request(app).post('/api/auth/login').send({});
     expect(res.statusCode).toBe(400);
-    expect(res.body.error).toBe('idToken es requerido');
+    expect(res.body.error).toBe('Requiere idToken o email+password');
   });
 
   it('debería devolver 401 si el token es inválido', async () => {
@@ -33,7 +33,7 @@ describe('POST /api/auth/login', () => {
       .send({ idToken: 'fake-token' });
 
     expect(res.statusCode).toBe(401);
-    expect(res.body.error).toBe('Token de Firebase inválido o expirado');
+    expect(res.body.error).toBe('Credenciales inválidas');
   });
 
   it('debería crear usuario si no existe y devolverlo', async () => {
