@@ -3,12 +3,12 @@ const path = require('path');
 
 let serviceAccount = null;
 
-if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
-  const filePath = path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
-  serviceAccount = require(filePath);
-} else if (process.env.FIREBASE_SERVICE_ACCOUNT_B64) {
+if (process.env.FIREBASE_SERVICE_ACCOUNT_B64) {
   const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_B64, 'base64').toString('utf-8');
   serviceAccount = JSON.parse(decoded);
+} else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+  const filePath = path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
+  serviceAccount = require(filePath);
 }
 
 if (!serviceAccount) {
