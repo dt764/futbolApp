@@ -6,7 +6,9 @@ const http = require('http');
 const app = require('../app');
 const connectDB = require('../app_api/models/db');
 
-connectDB();
+connectDB().catch(err => {
+  console.error('Error conectando a MongoDB:', err.message);
+});
 
 const PORT = process.env.PORT || 3000;
 
