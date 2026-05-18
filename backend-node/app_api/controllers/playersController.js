@@ -1,5 +1,5 @@
 const Player = require('../models/Player');
-const { searchPlayers, getPlayerById } = require('../services/apiFootball');
+const { searchPlayers } = require('../services/apiFootball');
 
 const list = async (req, res) => {
   try {
@@ -59,37 +59,35 @@ const searchExternal = async (req, res) => {
 
 const importFromApi = async (req, res) => {
   try {
-    const { apiId, team, league } = req.body;
+    const { player: apiPlayerData, statistics, team, league, location } = req.body;
 
+    if (!apiPlayerData?.id) {
+      return res.status(400).json({ error: 'Datos del jugador inválidos. Envía el objeto con player y statistics.' });
+    }
+
+    const apiId = apiPlayerData.id;
     const exists = await Player.findOne({ apiId });
     if (exists) {
       return res.status(409).json({ error: 'El jugador ya existe en la base de datos' });
     }
 
-    const data = await getPlayerById(apiId);
-    const apiPlayer = data.response?.[0];
-
-    if (!apiPlayer) {
-      return res.status(404).json({ error: 'Jugador no encontrado en la API externa' });
-    }
-
     const playerData = {
       source: 'api',
-      apiId: apiPlayer.player.id,
-      name: apiPlayer.player.name,
-      firstname: apiPlayer.player.firstname,
-      lastname: apiPlayer.player.lastname,
-      nationality: apiPlayer.player.nationality,
-      position: apiPlayer.statistics?.[0]?.games?.position,
-      birthDate: apiPlayer.player.birth?.date,
-      birthPlace: apiPlayer.player.birth?.place,
-      birthCountry: apiPlayer.player.birth?.country,
-      height: apiPlayer.player.height,
-      weight: apiPlayer.player.weight,
-      photo: apiPlayer.player.photo,
-      team: team || apiPlayer.statistics?.[0]?.team?.name,
-      league: league || apiPlayer.statistics?.[0]?.league?.name,
-      location: req.body.location || { lat: 0, lng: 0 },
+      apiId,
+      name: apiPlayerData.name,
+      firstname: apiPlayerData.firstname,
+      lastname: apiPlayerData.lastname,
+      nationality: apiPlayerData.nationality,
+      position: statistics?.[0]?.games?.position,
+      birthDate: apiPlayerData.birth?.date,
+      birthPlace: apiPlayerData.birth?.place,
+      birthCountry: apiPlayerData.birth?.country,
+      height: apiPlayerData.height,
+      weight: apiPlayerData.weight,
+      photo: apiPlayerData.photo,
+      team: team || statistics?.[0]?.team?.name,
+      league: league || statistics?.[0]?.league?.name,
+      location: location || { lat: 0, lng: 0 },
       createdBy: req.firebaseUid,
     };
 

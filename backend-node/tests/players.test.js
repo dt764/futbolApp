@@ -246,33 +246,42 @@ describe('POST /api/players/import', () => {
     Player.deleteMany();
   });
 
+  const mockPlayerData = {
+    id: 154, name: 'Lionel Messi', firstname: 'Lionel', lastname: 'Messi',
+    nationality: 'Argentina', height: '170 cm', weight: '72 kg',
+    photo: 'https://example.com/messi.png',
+    birth: { date: '1987-06-24', place: 'Rosario', country: 'Argentina' },
+  };
+
+  const mockStatistics = [{
+    games: { position: 'Forward' },
+    team: { name: 'Inter Miami' },
+    league: { name: 'MLS' },
+  }];
+
   it('debería importar un jugador desde API externa', async () => {
     firebaseMock.__mockVerifyIdToken.mockResolvedValue({ uid: 'test-uid' });
-    apiFootball.getPlayerById.mockResolvedValue({
-      response: [{
-        player: {
-          id: 154, name: 'Lionel Messi', firstname: 'Lionel', lastname: 'Messi',
-          nationality: 'Argentina', height: '170 cm', weight: '72 kg',
-          photo: 'https://example.com/messi.png',
-          birth: { date: '1987-06-24', place: 'Rosario', country: 'Argentina' },
-        },
-        statistics: [{
-          games: { position: 'Forward' },
-          team: { name: 'Inter Miami' },
-          league: { name: 'MLS' },
-        }],
-      }],
-    });
 
     const res = await request(app)
       .post('/api/players/import')
       .set('Authorization', asUser())
-      .send({ apiId: 154, team: 'Inter Miami', league: 'MLS' });
+      .send({ player: mockPlayerData, statistics: mockStatistics, team: 'Inter Miami', league: 'MLS' });
 
     expect(res.statusCode).toBe(201);
     expect(res.body.player.name).toBe('Lionel Messi');
     expect(res.body.player.apiId).toBe(154);
     expect(res.body.player.source).toBe('api');
+  });
+
+  it('debería devolver 400 si faltan datos del jugador', async () => {
+    firebaseMock.__mockVerifyIdToken.mockResolvedValue({ uid: 'test-uid' });
+
+    const res = await request(app)
+      .post('/api/players/import')
+      .set('Authorization', asUser())
+      .send({});
+
+    expect(res.statusCode).toBe(400);
   });
 
   it('debería devolver 409 si ya existe', async () => {
@@ -286,7 +295,7 @@ describe('POST /api/players/import', () => {
     const res = await request(app)
       .post('/api/players/import')
       .set('Authorization', asUser())
-      .send({ apiId: 154 });
+      .send({ player: mockPlayerData, statistics: mockStatistics });
 
     expect(res.statusCode).toBe(409);
     expect(res.body.error).toBe('El jugador ya existe en la base de datos');

@@ -42,7 +42,18 @@ export default [
     },
     rules: {
       "security/detect-non-literal-fs-filename": "off",
-      "n/no-unpublished-import": "off"
-    }
+      "n/no-unpublished-import": "off",
+      "n/no-unpublished-require": "off",
+    },
+  },
+
+  {
+    files: ["**/__mocks__/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+    },
   },
 ];
