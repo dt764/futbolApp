@@ -1,6 +1,6 @@
 describe('Players', () => {
-  it('should show players list', () => {
+  it('should redirect to login when not authenticated', () => {
     cy.visit('/players');
-    cy.contains('Jugadores');
+    cy.url().should('include', '/login');
   });
 });
