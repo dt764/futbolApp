@@ -1,0 +1,145 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/players"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ getPlayerName() }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-spinner *ngIf="loading" class="center-spinner"></ion-spinner>
+
+  <ng-container *ngIf="player as p">
+    <div class="player-header">
+      <ion-avatar class="player-photo">
+        <img *ngIf="p.photo; else noPhoto" [src]="p.photo" [alt]="p.name" />
+        <ng-template #noPhoto>
+          <div class="avatar-placeholder-lg">{{ p.name.charAt(0) }}</div>
+        </ng-template>
+      </ion-avatar>
+      <div class="player-basic">
+        <h1>{{ getPlayerName() }}</h1>
+        <p class="position">{{ p.position }}</p>
+        <p *ngIf="p.team || p.league" class="team-league">
+          {{ p.team }}<span *ngIf="p.team && p.league"> &middot; </span>{{ p.league }}
+        </p>
+        <p *ngIf="p.nationality" class="nationality">{{ p.nationality }}</p>
+      </div>
+    </div>
+
+    <ion-card *ngIf="p.birthDate || p.height || p.weight">
+      <ion-card-header><ion-card-title>Datos físicos</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngIf="p.birthDate">
+            <ion-label>Fecha de nacimiento</ion-label>
+            <ion-note slot="end">{{ p.birthDate }}</ion-note>
+          </ion-item>
+          <ion-item *ngIf="p.height">
+            <ion-label>Altura</ion-label>
+            <ion-note slot="end">{{ p.height }} cm</ion-note>
+          </ion-item>
+          <ion-item *ngIf="p.weight">
+            <ion-label>Peso</ion-label>
+            <ion-note slot="end">{{ p.weight }} kg</ion-note>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="hasValidLocation(p.location)">
+      <ion-card-header><ion-card-title>Ubicación</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <p *ngIf="p.location?.address">{{ p.location?.address }}</p>
+        <ion-button fill="clear" [href]="mapsUrl(p.location?.lat ?? 0, p.location?.lng ?? 0)" target="_blank">
+          <ion-icon name="map-outline" slot="start"></ion-icon>
+          Abrir en Google Maps
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>
+          Comentarios
+          <ion-note *ngIf="comments.length > 0" class="avg-rating">
+            {{ averageRating }}
+          </ion-note>
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list *ngIf="comments.length > 0">
+          <ion-item *ngFor="let c of comments" class="comment-item">
+            <ion-label>
+              <div class="comment-header">
+                <strong>{{ c.author }}</strong>
+                <span class="comment-stars">
+                  <span *ngFor="let s of stars(c.rating)" [class.star-filled]="s <= c.rating">★</span>
+                </span>
+              </div>
+              <p>{{ c.text }}</p>
+              <ion-button
+                *ngIf="hasValidLocation(c.location)"
+                fill="clear"
+                size="small"
+                [href]="mapsUrl(c.location?.lat ?? 0, c.location?.lng ?? 0)"
+                target="_blank"
+              >
+                <ion-icon name="map-outline" slot="start"></ion-icon>
+                {{ c.location?.lat }}, {{ c.location?.lng }}
+              </ion-button>
+              <ion-note>{{ c.createdAt | date:'short' }}</ion-note>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ion-note *ngIf="comments.length === 0" class="ion-padding-top">
+          No hay comentarios aún. ¡Sé el primero en opinar!
+        </ion-note>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header><ion-card-title>Añadir comentario</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Tu nombre</ion-label>
+          <ion-input [(ngModel)]="commentForm.author" required></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="floating">Comentario</ion-label>
+          <ion-textarea [(ngModel)]="commentForm.text" rows="3" maxlength="1000" required></ion-textarea>
+        </ion-item>
+        <ion-item>
+          <ion-label>Valoración</ion-label>
+          <div class="rating-input">
+            <span
+              *ngFor="let s of stars(5)"
+              class="star-btn"
+              [class.star-filled]="s <= commentForm.rating"
+              (click)="commentForm.rating = s"
+            >★</span>
+          </div>
+        </ion-item>
+        <ion-item>
+          <ion-label>Ubicación</ion-label>
+          <ion-button fill="outline" size="small" (click)="useCurrentLocation()">
+            <ion-icon name="location-outline" slot="start"></ion-icon>
+            {{ commentForm.location ? (commentForm.location.lat + ', ' + commentForm.location.lng) : 'Añadir ubicación' }}
+          </ion-button>
+        </ion-item>
+        <ion-button
+          expand="block"
+          class="ion-margin-top"
+          (click)="addComment()"
+          [disabled]="!commentForm.author.trim() || !commentForm.text.trim() || commentLoading"
+        >
+          <ion-spinner *ngIf="commentLoading" slot="start"></ion-spinner>
+          Publicar comentario
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+</ion-content>

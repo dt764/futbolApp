@@ -1,4 +1,5 @@
 import { defineConfig } from 'cypress';
+import angular from '@analogjs/vite-plugin-angular';
 
 export default defineConfig({
   e2e: {
