@@ -53,11 +53,40 @@ jobs:
           extra_args: --only-verified
           path: ./
 
-      - name: Run tests
-        run: npm test -- --no-watch --browsers ChromeHeadless --configuration ci
+      - name: 🧪 Cypress component tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          headless: true
+          working-directory: frontend
+          component: true
+          command: npm run test:ci
+
+      - name: 📊 Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: frontend/coverage/
 
       - name: Build
         run: npm run build -- --configuration production
+
+      - name: 🧪 Cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          headless: true
+          working-directory: frontend
+          start: npm run start
+          wait-on: 'http://localhost:4200'
+          command: npm run e2e:ci
+
+      - name: 📸 Upload Cypress screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: frontend/cypress/screenshots/
 
       - name: Build Docker image (Local check)
         run: docker build -t football-frontend .
