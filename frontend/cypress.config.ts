@@ -13,6 +13,7 @@ export default defineConfig({
       framework: 'angular',
       bundler: 'vite',
     },
+    supportFile: 'cypress/support/component.ts',
     specPattern: 'src/**/*.cy.ts',
   },
 });
