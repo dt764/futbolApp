@@ -1,21 +1,20 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-
+import { BrowserModule } from '@angular/platform-browser';
+import { IonicModule } from '@ionic/angular';
 import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
 
 describe('AppComponent', () => {
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       declarations: [AppComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
     }).compileComponents();
   });
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(app).to.exist;
   });
-
 });

@@ -78,7 +78,7 @@ jobs:
           headless: true
           working-directory: frontend
           start: npm run start
-          wait-on: 'http://localhost:4200'
+          wait-on: 'http://localhost:8100'
           command: npm run e2e:ci
 
       - name: 📸 Upload Cypress screenshots on failure
