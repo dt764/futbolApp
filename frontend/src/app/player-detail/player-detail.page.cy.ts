@@ -22,11 +22,9 @@ describe('PlayerDetailPage', () => {
     expect(fixture.componentInstance).to.exist;
   });
 
-  it('should have empty comment form initially', () => {
+  it('should have playerId from route', () => {
     const fixture = TestBed.createComponent(PlayerDetailPage);
     const page = fixture.componentInstance;
-    expect(page.commentForm.author).to.equal('');
-    expect(page.commentForm.text).to.equal('');
-    expect(page.commentForm.rating).to.equal(5);
+    expect(page.playerId).to.equal('fake-id');
   });
 });

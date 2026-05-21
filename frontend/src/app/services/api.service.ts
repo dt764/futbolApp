@@ -1,11 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { BackendToggleService } from '../patterns/backend-toggle.service';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
-  private baseUrl = environment.apiUrl;
+  private toggle = inject(BackendToggleService);
+
+  private get baseUrl() { return this.toggle.baseUrl(); }
 
   private headers(token?: string) {
     let h = new HttpHeaders({ 'Content-Type': 'application/json' });

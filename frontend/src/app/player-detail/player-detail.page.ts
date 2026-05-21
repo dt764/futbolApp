@@ -1,6 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, inject, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -10,10 +9,43 @@ import { Comment, CommentsResponse } from '../models/comment.models';
 
 @Component({
   selector: 'app-player-detail',
-  templateUrl: 'player-detail.page.html',
+  template: `
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-back-button defaultHref="/players"></ion-back-button>
+        </ion-buttons>
+        <ion-title>{{ getPlayerName() }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button
+            *ngIf="auth.appUser?.role === 'admin'"
+            [routerLink]="'/players/' + playerId + '/edit'"
+            color="primary"
+          >
+            <ion-icon name="create-outline" slot="start"></ion-icon>
+            Editar
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <player-detail
+        [player]="player()"
+        [comments]="comments"
+        [isAdmin]="auth.appUser?.role === 'admin'"
+        [loading]="loading()"
+        [commentLoading]="commentLoading"
+        [error]="error"
+        (addComment)="handleAddComment($any($event))"
+        (deleteComment)="handleDeleteComment($any($event))"
+      ></player-detail>
+    </ion-content>
+  `,
   styleUrls: ['player-detail.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [IonicModule, CommonModule, RouterModule],
 })
 export class PlayerDetailPage implements OnInit {
   private api = inject(ApiService);
@@ -21,7 +53,7 @@ export class PlayerDetailPage implements OnInit {
   protected auth = inject(AuthService);
   private playerState = inject(PlayerState);
 
-  private playerId = '';
+  playerId = '';
 
   readonly player = this.playerState.selectedPlayer;
   readonly loading = this.playerState.selectedPlayerLoading;
@@ -29,13 +61,6 @@ export class PlayerDetailPage implements OnInit {
   comments: Comment[] = [];
   commentLoading = false;
   error = '';
-
-  commentForm = {
-    author: '',
-    text: '',
-    rating: 5,
-    location: null as { lat: number; lng: number } | null,
-  };
 
   ngOnInit() {
     this.playerId = this.route.snapshot.paramMap.get('id')!;
@@ -50,12 +75,6 @@ export class PlayerDetailPage implements OnInit {
     });
   }
 
-  get averageRating(): number {
-    if (this.comments.length === 0) return 0;
-    const sum = this.comments.reduce((a, c) => a + c.rating, 0);
-    return Math.round((sum / this.comments.length) * 10) / 10;
-  }
-
   getPlayerName(): string {
     const p = this.player();
     if (!p) return '';
@@ -63,61 +82,12 @@ export class PlayerDetailPage implements OnInit {
     return p.name;
   }
 
-  stars(rating: number): number[] {
-    return Array.from({ length: 5 }, (_, i) => i + 1);
-  }
-
-  hasValidLocation(loc?: { lat: number; lng: number } | null): boolean {
-    return !!loc && (loc.lat !== 0 || loc.lng !== 0);
-  }
-
-  mapsUrl(lat: number, lng: number): string {
-    return `https://www.google.com/maps?q=${lat},${lng}`;
-  }
-
-  useCurrentLocation() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.commentForm.location = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-      },
-      () => {},
-    );
-  }
-
-  deleteComment(commentId: string) {
-    const alert = document.createElement('ion-alert');
-    alert.header = 'Eliminar comentario';
-    alert.message = '¿Estás seguro de que quieres eliminar este comentario?';
-    alert.buttons = [
-      { text: 'Cancelar', role: 'cancel' },
-      {
-        text: 'Eliminar',
-        handler: () => {
-          this.api.delete(`/api/comments/${commentId}`).subscribe({
-            next: () => {
-              this.comments = this.comments.filter((c) => c._id !== commentId);
-            },
-            error: () => {
-              this.error = 'Error al eliminar el comentario';
-            },
-          });
-        },
-      },
-    ];
-    document.body.appendChild(alert);
-    alert.present();
-  }
-
-  addComment() {
-    const { author, text, rating, location } = this.commentForm;
-    if (!author.trim() || !text.trim()) return;
-
+  handleAddComment(event: CustomEvent<{ author: string; text: string; rating: number; location?: { lat: number; lng: number } }>) {
+    const { author, text, rating, location } = event.detail;
     this.commentLoading = true;
-    const body: any = { author: author.trim(), text: text.trim(), rating };
+    this.error = '';
+
+    const body: any = { author, text, rating };
     if (location) body.location = location;
 
     const p = this.player();
@@ -127,11 +97,21 @@ export class PlayerDetailPage implements OnInit {
       .subscribe({
         next: (res) => {
           this.comments.unshift(res.comment);
-          this.commentForm.text = '';
-          this.commentForm.rating = 5;
           this.commentLoading = false;
         },
         error: () => { this.commentLoading = false; },
       });
+  }
+
+  handleDeleteComment(event: CustomEvent<string>) {
+    const commentId = event.detail;
+    this.api.delete(`/api/comments/${commentId}`).subscribe({
+      next: () => {
+        this.comments = this.comments.filter((c) => c._id !== commentId);
+      },
+      error: () => {
+        this.error = 'Error al eliminar el comentario';
+      },
+    });
   }
 }
