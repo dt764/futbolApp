@@ -6,7 +6,6 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  User,
 } from 'firebase/auth';
 import { from, map, Observable, switchMap, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -26,17 +25,39 @@ export class AuthService {
 
   private _token: string | null = null;
   private _appUser: AppUser | null = null;
+  private _resolveReady!: () => void;
+  readonly ready: Promise<void>;
 
   get token() { return this._token; }
   get appUser() { return this._appUser; }
   get isLoggedIn() { return !!this._token; }
 
-  user$ = new Observable<User | null>((observer) => {
-    const unsubscribe = onAuthStateChanged(this.auth, observer);
-    return unsubscribe;
-  });
-
   private api = inject(ApiService);
+
+  constructor() {
+    this.ready = new Promise((resolve) => {
+      this._resolveReady = resolve;
+    });
+
+    onAuthStateChanged(this.auth, async (user) => {
+      if (user) {
+        try {
+          this._token = await user.getIdToken();
+          this.api.get<{ user: AppUser }>('/api/auth/me').subscribe({
+            next: (res) => { this._appUser = res.user; },
+            error: () => {},
+          });
+        } catch {
+          this._token = null;
+          this._appUser = null;
+        }
+      } else {
+        this._token = null;
+        this._appUser = null;
+      }
+      this._resolveReady();
+    });
+  }
 
   login(email: string, password: string): Observable<AppUser> {
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(

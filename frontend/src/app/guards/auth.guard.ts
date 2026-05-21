@@ -7,7 +7,8 @@ export class AuthGuard implements CanActivate {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  canActivate(): boolean | UrlTree {
+  async canActivate(): Promise<boolean | UrlTree> {
+    await this.auth.ready;
     if (this.auth.isLoggedIn) return true;
     return this.router.parseUrl('/login');
   }
