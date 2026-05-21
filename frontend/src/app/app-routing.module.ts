@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -11,9 +12,19 @@ export const routes: Routes = [
     loadComponent: () => import('./players/players.page').then((m) => m.PlayersPage),
   },
   {
+    path: 'players/create',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./player-create/player-create.page').then((m) => m.PlayerCreatePage),
+  },
+  {
     path: 'players/import',
     canActivate: [AuthGuard],
     loadComponent: () => import('./player-import/player-import.page').then((m) => m.PlayerImportPage),
+  },
+  {
+    path: 'players/:id/edit',
+    canActivate: [AuthGuard, AdminGuard],
+    loadComponent: () => import('./player-edit/player-edit.page').then((m) => m.PlayerEditPage),
   },
   {
     path: 'players/:id',

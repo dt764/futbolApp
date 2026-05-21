@@ -4,13 +4,23 @@
       <ion-back-button defaultHref="/players"></ion-back-button>
     </ion-buttons>
     <ion-title>{{ getPlayerName() }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        *ngIf="auth.appUser?.role === 'admin'"
+        [routerLink]="'/players/' + player()?._id + '/edit'"
+        color="primary"
+      >
+        <ion-icon name="create-outline" slot="start"></ion-icon>
+        Editar
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-spinner *ngIf="loading" class="center-spinner"></ion-spinner>
+  <ion-spinner *ngIf="loading()" class="center-spinner"></ion-spinner>
 
-  <ng-container *ngIf="player as p">
+  <ng-container *ngIf="player() as p">
     <div class="player-header">
       <ion-avatar class="player-photo">
         <img *ngIf="p.photo; else noPhoto" [src]="p.photo" [alt]="p.name" />
@@ -92,6 +102,16 @@
               </ion-button>
               <ion-note>{{ c.createdAt | date:'short' }}</ion-note>
             </ion-label>
+            <ion-button
+              *ngIf="auth.appUser?.role === 'admin'"
+              slot="end"
+              fill="clear"
+              color="danger"
+              size="small"
+              (click)="deleteComment(c._id)"
+            >
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
           </ion-item>
         </ion-list>
 

@@ -7,3 +7,7 @@ Cypress.Commands.add('login', (email: string, password: string) => {
     cy.url().should('not.include', '/login');
   });
 });
+
+Cypress.Commands.add('typeInIonInput', (label: string, value: string) => {
+  cy.contains('ion-item', label).find('input').type(value, { force: true });
+});

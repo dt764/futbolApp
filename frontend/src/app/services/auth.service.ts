@@ -25,7 +25,6 @@ export class AuthService {
 
   private _token: string | null = null;
   private _appUser: AppUser | null = null;
-  private _resolveReady!: () => void;
   readonly ready: Promise<void>;
 
   get token() { return this._token; }
@@ -35,16 +34,28 @@ export class AuthService {
   private api = inject(ApiService);
 
   constructor() {
-    this.ready = new Promise((resolve) => {
-      this._resolveReady = resolve;
+    this.ready = this.auth.authStateReady().then(async () => {
+      const user = this.auth.currentUser;
+      if (user) {
+        try {
+          this._token = await user.getIdToken();
+          this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now()).subscribe({
+            next: (res) => { if (res) this._appUser = res.user; },
+            error: () => {},
+          });
+        } catch {
+          this._token = null;
+          this._appUser = null;
+        }
+      }
     });
 
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         try {
           this._token = await user.getIdToken();
-          this.api.get<{ user: AppUser }>('/api/auth/me').subscribe({
-            next: (res) => { this._appUser = res.user; },
+          this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now()).subscribe({
+            next: (res) => { if (res) this._appUser = res.user; },
             error: () => {},
           });
         } catch {
@@ -55,7 +66,6 @@ export class AuthService {
         this._token = null;
         this._appUser = null;
       }
-      this._resolveReady();
     });
   }
 
@@ -63,10 +73,10 @@ export class AuthService {
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
       switchMap((cred) => from(cred.user.getIdToken())),
       tap((idToken) => { this._token = idToken; }),
-      switchMap(() => this.api.get<{ user: AppUser }>('/api/auth/me')),
+      switchMap(() => this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now())),
       map((res) => {
-        this._appUser = res.user;
-        return res.user;
+        if (res) this._appUser = res.user;
+        return this._appUser!;
       }),
     );
   }
@@ -75,10 +85,10 @@ export class AuthService {
     return from(createUserWithEmailAndPassword(this.auth, email, password)).pipe(
       switchMap((cred) => from(cred.user.getIdToken())),
       tap((idToken) => { this._token = idToken; }),
-      switchMap(() => this.api.get<{ user: AppUser }>('/api/auth/me')),
+      switchMap(() => this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now())),
       map((res) => {
-        this._appUser = res.user;
-        return res.user;
+        if (res) this._appUser = res.user;
+        return this._appUser!;
       }),
     );
   }

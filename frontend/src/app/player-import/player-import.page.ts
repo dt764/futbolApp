@@ -4,30 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
-
-interface ApiPlayer {
-  player: {
-    id: number;
-    name: string;
-    firstname: string;
-    lastname: string;
-    nationality: string;
-    height: string;
-    weight: string;
-    photo: string;
-    birth: { date: string; place: string; country: string };
-  };
-  statistics: Array<{
-    games: { position: string };
-    team: { name: string };
-    league: { name: string };
-  }>;
-}
-
-interface SearchResponse {
-  results: number;
-  response: ApiPlayer[];
-}
+import { ApiPlayer, ApiSearchResponse } from '../models/player.models';
 
 @Component({
   selector: 'app-player-import',
@@ -63,7 +40,7 @@ export class PlayerImportPage {
     if (this.search.team.trim()) params.set('team', this.search.team.trim());
     if (this.search.league.trim()) params.set('league', this.search.league.trim());
 
-    this.api.get<SearchResponse>(`/api/players/search/external?${params}`).subscribe({
+    this.api.get<ApiSearchResponse>(`/api/players/search/external?${params}`).subscribe({
       next: (res) => {
         this.results = res.response || [];
         this.loading = false;

@@ -3,36 +3,10 @@ import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { PlayerState } from '../services/player.state';
 import { ApiService } from '../services/api.service';
-
-interface Player {
-  _id: string;
-  name: string;
-  firstname?: string;
-  lastname?: string;
-  nationality?: string;
-  position?: string;
-  birthDate?: string;
-  height?: string;
-  weight?: string;
-  photo?: string;
-  team?: string;
-  league?: string;
-  location?: { lat: number; lng: number; address?: string };
-}
-
-interface Comment {
-  _id: string;
-  author: string;
-  text: string;
-  rating: number;
-  createdAt: string;
-  location?: { lat: number; lng: number };
-}
-
-interface CommentsResponse {
-  comments: Comment[];
-}
+import { Comment, CommentsResponse } from '../models/comment.models';
 
 @Component({
   selector: 'app-player-detail',
@@ -44,10 +18,15 @@ interface CommentsResponse {
 export class PlayerDetailPage implements OnInit {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
+  protected auth = inject(AuthService);
+  private playerState = inject(PlayerState);
 
-  player: Player | null = null;
+  private playerId = '';
+
+  readonly player = this.playerState.selectedPlayer;
+  readonly loading = this.playerState.selectedPlayerLoading;
+
   comments: Comment[] = [];
-  loading = true;
   commentLoading = false;
   error = '';
 
@@ -59,26 +38,13 @@ export class PlayerDetailPage implements OnInit {
   };
 
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id')!;
-    this.loadPlayer(id);
-    this.loadComments(id);
+    this.playerId = this.route.snapshot.paramMap.get('id')!;
+    this.playerState.loadSelectedPlayer(this.playerId);
+    this.loadComments();
   }
 
-  private loadPlayer(id: string) {
-    this.api.get<{ player: Player }>(`/api/players/${id}`).subscribe({
-      next: (res) => {
-        this.player = res.player;
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'Error al cargar el jugador';
-        this.loading = false;
-      },
-    });
-  }
-
-  private loadComments(id: string) {
-    this.api.get<CommentsResponse>(`/api/comments/player/${id}`).subscribe({
+  private loadComments() {
+    this.api.get<CommentsResponse>(`/api/comments/player/${this.playerId}`).subscribe({
       next: (res) => { this.comments = res.comments; },
       error: () => {},
     });
@@ -91,8 +57,8 @@ export class PlayerDetailPage implements OnInit {
   }
 
   getPlayerName(): string {
-    if (!this.player) return '';
-    const p = this.player;
+    const p = this.player();
+    if (!p) return '';
     if (p.firstname && p.lastname) return `${p.firstname} ${p.lastname}`;
     return p.name;
   }
@@ -122,6 +88,30 @@ export class PlayerDetailPage implements OnInit {
     );
   }
 
+  deleteComment(commentId: string) {
+    const alert = document.createElement('ion-alert');
+    alert.header = 'Eliminar comentario';
+    alert.message = '¿Estás seguro de que quieres eliminar este comentario?';
+    alert.buttons = [
+      { text: 'Cancelar', role: 'cancel' },
+      {
+        text: 'Eliminar',
+        handler: () => {
+          this.api.delete(`/api/comments/${commentId}`).subscribe({
+            next: () => {
+              this.comments = this.comments.filter((c) => c._id !== commentId);
+            },
+            error: () => {
+              this.error = 'Error al eliminar el comentario';
+            },
+          });
+        },
+      },
+    ];
+    document.body.appendChild(alert);
+    alert.present();
+  }
+
   addComment() {
     const { author, text, rating, location } = this.commentForm;
     if (!author.trim() || !text.trim()) return;
@@ -130,7 +120,10 @@ export class PlayerDetailPage implements OnInit {
     const body: any = { author: author.trim(), text: text.trim(), rating };
     if (location) body.location = location;
 
-    this.api.post<{ comment: Comment }>(`/api/comments/player/${this.player!._id}`, body)
+    const p = this.player();
+    if (!p) return;
+
+    this.api.post<{ comment: Comment }>(`/api/comments/player/${p._id}`, body)
       .subscribe({
         next: (res) => {
           this.comments.unshift(res.comment);

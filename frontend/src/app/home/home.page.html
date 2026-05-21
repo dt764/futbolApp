@@ -1,20 +1,32 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+    <ion-title>FutbolApp</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <div class="hero">
+    <h1>FutbolApp</h1>
+    <p>Tu app de jugadores de fútbol</p>
   </div>
+
+  <ion-card button routerLink="/players">
+    <ion-card-header>
+      <ion-icon name="people-outline" slot="start"></ion-icon>
+      <ion-card-title>Jugadores</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      Explora la base de datos de jugadores, filtra por equipo o liga, y accede a los detalles.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-icon name="newspaper-outline" slot="start"></ion-icon>
+      <ion-card-title>Noticias</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-note>Próximamente — Noticias de fútbol vía CORBA.</ion-note>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

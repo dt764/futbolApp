@@ -12,7 +12,7 @@
   </ion-header>
 
   <ion-searchbar
-    [(ngModel)]="filters.name"
+    [(ngModel)]="filterForm.name"
     placeholder="Buscar por nombre..."
     (ionInput)="search()"
     (ionClear)="search()"
@@ -22,24 +22,24 @@
   <div class="filter-row">
     <ion-item>
       <ion-label position="floating">Equipo</ion-label>
-      <ion-input [(ngModel)]="filters.team" (ionChange)="search()" debounce="500"></ion-input>
+      <ion-input [(ngModel)]="filterForm.team" (ionChange)="search()" debounce="500"></ion-input>
     </ion-item>
     <ion-item>
       <ion-label position="floating">Liga</ion-label>
-      <ion-input [(ngModel)]="filters.league" (ionChange)="search()" debounce="500"></ion-input>
+      <ion-input [(ngModel)]="filterForm.league" (ionChange)="search()" debounce="500"></ion-input>
     </ion-item>
   </div>
 
-  <ion-note *ngIf="error" color="danger" class="ion-padding-start ion-padding-top">
-    {{ error }}
+  <ion-note *ngIf="error()" color="danger" class="ion-padding-start ion-padding-top">
+    {{ error() }}
   </ion-note>
 
-  <ion-note *ngIf="!loading && players.length === 0 && !error" class="ion-padding-start ion-padding-top">
+  <ion-note *ngIf="!loading() && players().length === 0 && !error()" class="ion-padding-start ion-padding-top">
     No se encontraron jugadores.
   </ion-note>
 
   <ion-list>
-    <ion-item *ngFor="let p of players" button detail routerLink="/players/{{ p._id }}">
+    <ion-item *ngFor="let p of players()" button detail routerLink="/players/{{ p._id }}">
       <ion-avatar slot="start">
         <img *ngIf="p.photo; else noPhoto" [src]="p.photo" [alt]="p.name" />
         <ng-template #noPhoto>
@@ -58,5 +58,5 @@
     <ion-infinite-scroll-content loadingText="Cargando más jugadores..."></ion-infinite-scroll-content>
   </ion-infinite-scroll>
 
-  <ion-spinner *ngIf="loading && players.length === 0" class="center-spinner"></ion-spinner>
+  <ion-spinner *ngIf="loading() && players().length === 0" class="center-spinner"></ion-spinner>
 </ion-content>
