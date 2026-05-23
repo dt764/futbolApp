@@ -39,6 +39,11 @@ export const routes: Routes = [
     loadComponent: () => import('./register/register.page').then((m) => m.RegisterPage),
   },
   {
+    path: 'ideal-team',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./ideal-team/ideal-team.page').then((m) => m.IdealTeamPage),
+  },
+  {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',

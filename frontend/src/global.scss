@@ -34,4 +34,79 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
+
+ion-content {
+  --background: none;
+  background: url('/assets/img/fut_app_bg.png') center / cover no-repeat;
+}
+
+ion-list {
+  --ion-item-background: transparent;
+  background: transparent;
+  padding: 0 16px;
+}
+
+ion-item {
+  --background: rgba(0, 0, 0, 0.55);
+  --color: #fff;
+  --border-color: rgba(255, 255, 255, 0.15);
+  --detail-icon-color: #fff;
+  --detail-icon-opacity: 0.7;
+  margin-bottom: 2px;
+  border-radius: 8px;
+}
+
+ion-item h2 {
+  color: #fff;
+}
+
+ion-item p {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+ion-card {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 8px;
+  margin: 16px;
+}
+
+ion-card ion-card-title,
+ion-card ion-card-header,
+ion-card ion-card-content {
+  color: #fff;
+}
+
+ion-searchbar.sc-ion-searchbar-md-h {
+  --background: rgba(0, 0, 0, 0.55);
+  --color: #ffffff;
+  --placeholder-color: #888888;
+  --icon-color: #ffffff;
+  --clear-button-color: #ffffff;
+  --box-shadow: none;
+  --border-radius: 8px;
+  margin: 8px auto;
+  padding: 0 16px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+ion-toolbar {
+  --background: rgba(0, 0, 0, 0.7);
+  --color: #fff;
+}
+
+ion-note {
+  color: #fff;
+}
+
+ion-back-button {
+  --color: #fff;
+}
+
+ion-avatar .avatar-placeholder {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}

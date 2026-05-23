@@ -3,7 +3,9 @@ import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Geolocation } from '@capacitor/geolocation';
 import { PlayerState } from '../services/player.state';
 import { GeoLocation } from '../models/player.models';
 
@@ -17,6 +19,7 @@ import { GeoLocation } from '../models/player.models';
 export class PlayerEditPage implements OnInit {
   private state = inject(PlayerState);
   private route = inject(ActivatedRoute);
+  private sanitizer = inject(DomSanitizer);
 
   playerId = '';
 
@@ -35,7 +38,8 @@ export class PlayerEditPage implements OnInit {
     location: null as GeoLocation | null,
   };
 
-  photoPreview: string | null = null;
+  photoPreview: SafeResourceUrl | string | null = null;
+  private pendingPhotoData: string | null = null;
   loading = true;
   submitting = false;
   error = '';
@@ -74,48 +78,70 @@ export class PlayerEditPage implements OnInit {
     });
   }
 
-  takePhoto() {
-    Camera.getPhoto({
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Camera,
-      quality: 80,
-    }).then((photo) => {
-      this.photoPreview = photo.dataUrl!;
-      this.form.photo = photo.dataUrl!;
-    }).catch(() => {});
+  async takePhoto() {
+    try {
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+        quality: 80,
+      });
+      if (photo.webPath) {
+        this.photoPreview = this.sanitizer.bypassSecurityTrustResourceUrl(photo.webPath);
+        this.pendingPhotoData = photo.webPath;
+        this.form.photo = '';
+      }
+    } catch {}
   }
 
-  pickFromGallery() {
-    Camera.getPhoto({
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Photos,
-      quality: 80,
-    }).then((photo) => {
-      this.photoPreview = photo.dataUrl!;
-      this.form.photo = photo.dataUrl!;
-    }).catch(() => {});
+  async pickFromGallery() {
+    try {
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Photos,
+        quality: 80,
+      });
+      if (photo.webPath) {
+        this.photoPreview = this.sanitizer.bypassSecurityTrustResourceUrl(photo.webPath);
+        this.pendingPhotoData = photo.webPath;
+        this.form.photo = '';
+      }
+    } catch {}
   }
 
   usePhotoUrl() {
-    this.photoPreview = this.form.photo || null;
+    this.pendingPhotoData = null;
+    if (this.form.photo) {
+      this.photoPreview = this.form.photo;
+    } else {
+      this.photoPreview = null;
+    }
   }
 
   clearPhoto() {
     this.photoPreview = null;
+    this.pendingPhotoData = null;
     this.form.photo = '';
   }
 
-  useCurrentLocation() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.form.location = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-      },
-      () => {},
-    );
+  private async webPathToBase64(webPath: string): Promise<string> {
+    const response = await fetch(webPath);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async useCurrentLocation() {
+    try {
+      const pos = await Geolocation.getCurrentPosition();
+      this.form.location = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      };
+    } catch {}
   }
 
   clearLocation() {
@@ -131,11 +157,20 @@ export class PlayerEditPage implements OnInit {
     return `https://www.google.com/maps?q=${this.form.location.lat},${this.form.location.lng}`;
   }
 
-  submit() {
+  async submit() {
     if (!this.form.name.trim()) return;
 
     this.submitting = true;
     this.error = '';
+
+    if (this.pendingPhotoData) {
+      try {
+        this.form.photo = await this.webPathToBase64(this.pendingPhotoData);
+      } catch {
+        this.form.photo = this.pendingPhotoData;
+      }
+      this.pendingPhotoData = null;
+    }
 
     const body: Record<string, unknown> = {};
     body['name'] = this.form.name.trim();

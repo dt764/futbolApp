@@ -50,3 +50,20 @@ export interface ApiSearchResponse {
   results: number;
   response: ApiPlayer[];
 }
+
+export interface IdealTeamPlayer {
+  name: string;
+  position: string;
+  team: string;
+  league: string;
+  nationality: string;
+}
+
+export interface IdealTeamResponse {
+  team: {
+    formation: string;
+    players: IdealTeamPlayer[];
+    reasoning?: string;
+  };
+  source: string;
+}

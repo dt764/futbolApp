@@ -1,0 +1,26 @@
+.position-avatar {
+  width: 48px;
+  height: 48px;
+}
+
+.position-badge {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+
+  &.portero { background: #f39c12; }
+  &.defensa { background: #3498db; }
+  &.centrocampista { background: #2ecc71; }
+  &.delantero { background: #e74c3c; }
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+}

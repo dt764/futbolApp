@@ -1,0 +1,83 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Equipo Ideal</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Generar equipo ideal con IA</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="floating">Formación (opcional)</ion-label>
+        <ion-select [(ngModel)]="selectedFormation" interface="popover" placeholder="Selecciona una formación">
+          <ion-select-option *ngFor="let f of formations" [value]="f">{{ f }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Fuente de jugadores</ion-label>
+        <ion-select [(ngModel)]="source" interface="popover">
+          <ion-select-option value="database">Base de datos (importados de API)</ion-select-option>
+          <ion-select-option value="fantasy">Jugadores predeterminados</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        (click)="generate()"
+        [disabled]="loading"
+      >
+        <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
+        {{ loading ? 'Generando...' : 'Generar equipo ideal' }}
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-note *ngIf="error" color="danger" class="ion-padding-start">
+    {{ error }}
+  </ion-note>
+
+  <ng-container *ngIf="team">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Equipo ideal — {{ teamFormation || 'Sin formación' }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngFor="let p of sortedTeam()">
+            <ion-avatar slot="start" class="position-avatar">
+              <div class="position-badge {{ p.position.toLowerCase() }}">
+                {{ p.position === 'Portero' ? 'POR' : p.position === 'Defensa' ? 'DEF' : p.position === 'Centrocampista' ? 'MED' : 'DEL' }}
+              </div>
+            </ion-avatar>
+            <ion-label>
+              <h2>{{ p.name }}</h2>
+              <p>{{ p.position }} <span *ngIf="p.team">&middot; {{ p.team }}</span></p>
+              <p *ngIf="p.league || p.nationality" class="meta">
+                <span *ngIf="p.nationality">{{ p.nationality }}</span>
+                <span *ngIf="p.league && p.nationality"> &middot; </span>
+                <span *ngIf="p.league">{{ p.league }}</span>
+              </p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="reasoning">
+      <ion-card-header>
+        <ion-card-title>Justificación de la IA</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>{{ reasoning }}</p>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+</ion-content>

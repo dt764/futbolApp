@@ -8,6 +8,9 @@ import { IonicModule } from '@ionic/angular';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app-routing.module';
 import { tokenInterceptor } from './app/services/token.interceptor';
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
+
+defineCustomElements(window);
 
 bootstrapApplication(AppComponent, {
   providers: [
