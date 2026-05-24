@@ -1,4 +1,40 @@
 <ion-app>
-  <app-backend-toggle></app-backend-toggle>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-menu contentId="main-content" side="start">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Navegación</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-menu-toggle *ngFor="let page of menuPages">
+          <ion-item [routerLink]="page.url" lines="none" detail="false">
+            <ion-icon [name]="page.icon" slot="start"></ion-icon>
+            <ion-label>{{ page.title }}</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+
+      <ion-list lines="none" class="auth-section">
+        <ng-container *ngIf="!isLoggedIn; else loggedInMenu">
+          <ion-menu-toggle *ngFor="let page of authPages">
+            <ion-item [routerLink]="page.url" lines="none" detail="false">
+              <ion-icon [name]="page.icon" slot="start" class="auth-icon"></ion-icon>
+              <ion-label>{{ page.title }}</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+        </ng-container>
+        <ng-template #loggedInMenu>
+          <ion-menu-toggle>
+            <ion-item button (click)="logout()" lines="none" detail="false">
+              <ion-icon name="log-out-outline" slot="start"></ion-icon>
+              <ion-label>Cerrar sesión</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+        </ng-template>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
 </ion-app>

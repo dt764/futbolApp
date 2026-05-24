@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
@@ -23,60 +23,54 @@ export class AuthService {
   private firebaseApp = initializeApp(environment.firebase);
   private auth = getAuth(this.firebaseApp);
 
-  private _token: string | null = null;
-  private _appUser: AppUser | null = null;
+  private tokenSignal = signal<string | null>(null);
+  private appUserSignal = signal<AppUser | null>(null);
   readonly ready: Promise<void>;
+  readonly isLoggedIn = signal(false);
 
-  get token() { return this._token; }
-  get appUser() { return this._appUser; }
-  get isLoggedIn() { return !!this._token; }
+  readonly token = this.tokenSignal.asReadonly();
+  readonly appUser = this.appUserSignal.asReadonly();
 
   private api = inject(ApiService);
 
-  constructor() {
-    this.ready = this.auth.authStateReady().then(async () => {
-      const user = this.auth.currentUser;
-      if (user) {
-        try {
-          this._token = await user.getIdToken();
-          this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now()).subscribe({
-            next: (res) => { if (res) this._appUser = res.user; },
-            error: () => {},
-          });
-        } catch {
-          this._token = null;
-          this._appUser = null;
-        }
+  private async syncUser(user: import('firebase/auth').User | null) {
+    if (user) {
+      try {
+        const idToken = await user.getIdToken();
+        this.tokenSignal.set(idToken);
+        this.isLoggedIn.set(true);
+        this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now()).subscribe({
+          next: (res) => { if (res) this.appUserSignal.set(res.user); },
+          error: () => this.appUserSignal.set(null),
+        });
+      } catch {
+        this.tokenSignal.set(null);
+        this.appUserSignal.set(null);
+        this.isLoggedIn.set(false);
       }
-    });
+    } else {
+      this.tokenSignal.set(null);
+      this.appUserSignal.set(null);
+      this.isLoggedIn.set(false);
+    }
+  }
 
-    onAuthStateChanged(this.auth, async (user) => {
-      if (user) {
-        try {
-          this._token = await user.getIdToken();
-          this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now()).subscribe({
-            next: (res) => { if (res) this._appUser = res.user; },
-            error: () => {},
-          });
-        } catch {
-          this._token = null;
-          this._appUser = null;
-        }
-      } else {
-        this._token = null;
-        this._appUser = null;
-      }
-    });
+  constructor() {
+    this.ready = this.auth.authStateReady().then(() => this.syncUser(this.auth.currentUser));
+    onAuthStateChanged(this.auth, (user) => this.syncUser(user));
   }
 
   login(email: string, password: string): Observable<AppUser> {
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
       switchMap((cred) => from(cred.user.getIdToken())),
-      tap((idToken) => { this._token = idToken; }),
+      tap((idToken) => {
+        this.tokenSignal.set(idToken);
+        this.isLoggedIn.set(true);
+      }),
       switchMap(() => this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now())),
       map((res) => {
-        if (res) this._appUser = res.user;
-        return this._appUser!;
+        if (res) this.appUserSignal.set(res.user);
+        return this.appUserSignal()!;
       }),
     );
   }
@@ -84,18 +78,22 @@ export class AuthService {
   register(email: string, password: string): Observable<AppUser> {
     return from(createUserWithEmailAndPassword(this.auth, email, password)).pipe(
       switchMap((cred) => from(cred.user.getIdToken())),
-      tap((idToken) => { this._token = idToken; }),
+      tap((idToken) => {
+        this.tokenSignal.set(idToken);
+        this.isLoggedIn.set(true);
+      }),
       switchMap(() => this.api.get<{ user: AppUser }>('/api/auth/me?_=' + Date.now())),
       map((res) => {
-        if (res) this._appUser = res.user;
-        return this._appUser!;
+        if (res) this.appUserSignal.set(res.user);
+        return this.appUserSignal()!;
       }),
     );
   }
 
   logout(): Observable<void> {
-    this._token = null;
-    this._appUser = null;
+    this.tokenSignal.set(null);
+    this.appUserSignal.set(null);
+    this.isLoggedIn.set(false);
     return from(signOut(this.auth));
   }
 }

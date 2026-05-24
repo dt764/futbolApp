@@ -18,6 +18,9 @@ export interface Player {
   team?: string;
   league?: string;
   location?: GeoLocation;
+  createdBy?: string;
+  source?: string;
+  createdAt?: string;
 }
 
 export interface PlayersResponse {

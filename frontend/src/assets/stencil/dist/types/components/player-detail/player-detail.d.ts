@@ -46,13 +46,17 @@ export declare class PlayerDetail {
         };
     }>;
     deleteComment: EventEmitter<string>;
+    editPlayer: EventEmitter<void>;
+    deletePlayer: EventEmitter<void>;
     commentAuthor: string;
     commentText: string;
     commentRating: number;
+    hoverRating: number;
     commentLocation: {
         lat: number;
         lng: number;
     } | null;
+    locationLoading: boolean;
     get averageRating(): number;
     get playerName(): string;
     stars(rating: number): number[];

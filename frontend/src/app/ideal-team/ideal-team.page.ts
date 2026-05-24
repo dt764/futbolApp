@@ -5,13 +5,14 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
 import { IdealTeamPlayer, IdealTeamResponse } from '../models/player.models';
+import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 
 @Component({
   selector: 'app-ideal-team',
   templateUrl: 'ideal-team.page.html',
   styleUrls: ['ideal-team.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
 })
 export class IdealTeamPage {
   private api = inject(ApiService);

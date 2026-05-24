@@ -9,7 +9,7 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(): Promise<boolean | UrlTree> {
     await this.auth.ready;
-    if (this.auth.appUser?.role === 'admin') return true;
+    if (this.auth.appUser()?.role === 'admin') return true;
     return this.router.parseUrl('/home');
   }
 }

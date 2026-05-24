@@ -12,7 +12,7 @@ export class PlayerState {
   private totalPages = signal(1);
   private isLoading = signal(false);
   private listError = signal<string | null>(null);
-  private searchFilters = signal<{ name: string; team: string; league: string }>({ name: '', team: '', league: '' });
+  private searchFilters = signal<{ name: string; team: string; league: string; createdFrom?: string; createdTo?: string; createdBy?: string }>({ name: '', team: '', league: '' });
 
   readonly players = this.playersList.asReadonly();
   readonly total = this.totalCount.asReadonly();
@@ -42,6 +42,9 @@ export class PlayerState {
     if (f.name) params.set('name', f.name);
     if (f.team) params.set('team', f.team);
     if (f.league) params.set('league', f.league);
+    if (f.createdFrom) params.set('createdFrom', f.createdFrom);
+    if (f.createdTo) params.set('createdTo', f.createdTo);
+    if (f.createdBy) params.set('createdBy', f.createdBy);
 
     const requestId = ++this.currentRequest;
 
@@ -64,7 +67,7 @@ export class PlayerState {
     });
   }
 
-  setFilters(filters: { name: string; team: string; league: string }) {
+  setFilters(filters: { name: string; team: string; league: string; createdFrom?: string; createdTo?: string; createdBy?: string }) {
     this.searchFilters.set(filters);
   }
 

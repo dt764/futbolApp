@@ -5,13 +5,14 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
 import { ApiPlayer, ApiSearchResponse } from '../models/player.models';
+import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 
 @Component({
   selector: 'app-player-import',
   templateUrl: 'player-import.page.html',
   styleUrls: ['player-import.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
 })
 export class PlayerImportPage {
   private api = inject(ApiService);

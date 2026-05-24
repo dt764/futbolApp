@@ -45,6 +45,8 @@ declare global {
     location?: { lat: number; lng: number };
   };
         "deleteComment": string;
+        "editPlayer": void;
+        "deletePlayer": void;
     }
     interface HTMLPlayerDetailElement extends Components.PlayerDetail, HTMLStencilElement {
         addEventListener<K extends keyof HTMLPlayerDetailElementEventMap>(type: K, listener: (this: HTMLPlayerDetailElement, ev: PlayerDetailCustomEvent<HTMLPlayerDetailElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -93,6 +95,8 @@ declare namespace LocalJSX {
     location?: { lat: number; lng: number };
   }>) => void;
         "onDeleteComment"?: (event: PlayerDetailCustomEvent<string>) => void;
+        "onDeletePlayer"?: (event: PlayerDetailCustomEvent<void>) => void;
+        "onEditPlayer"?: (event: PlayerDetailCustomEvent<void>) => void;
         "player"?: Player | null;
     }
 

@@ -45,11 +45,15 @@ export class PlayerDetail {
     location?: { lat: number; lng: number };
   }>;
   @Event() deleteComment: EventEmitter<string>;
+  @Event() editPlayer: EventEmitter<void>;
+  @Event() deletePlayer: EventEmitter<void>;
 
   @State() commentAuthor = '';
   @State() commentText = '';
-  @State() commentRating = 5;
+  @State() commentRating = 3;
+  @State() hoverRating = 0;
   @State() commentLocation: { lat: number; lng: number } | null = null;
+  @State() locationLoading = false;
 
   get averageRating(): number {
     if (this.comments.length === 0) return 0;
@@ -78,14 +82,18 @@ export class PlayerDetail {
 
   useCurrentLocation() {
     if (!navigator.geolocation) return;
+    this.locationLoading = true;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         this.commentLocation = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         };
+        this.locationLoading = false;
       },
-      () => {},
+      () => {
+        this.locationLoading = false;
+      },
     );
   }
 
@@ -125,7 +133,7 @@ export class PlayerDetail {
 
     return (
       <div class="player-detail">
-        {/* Player Header */}
+        {/* Player Header + Physical Data */}
         <div class="player-header">
           <ion-avatar class="player-photo">
             {p.photo ? (
@@ -145,39 +153,43 @@ export class PlayerDetail {
               </p>
             )}
             {p.nationality && <p class="nationality">{p.nationality}</p>}
-          </div>
-        </div>
-
-        {/* Physical Data */}
-        {(p.birthDate || p.height || p.weight) && (
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>Datos físicos</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-list>
+            {(p.birthDate || p.height || p.weight) && (
+              <div class="player-physical">
                 {p.birthDate && (
-                  <ion-item>
-                    <ion-label>Fecha de nacimiento</ion-label>
-                    <ion-note slot="end">{p.birthDate}</ion-note>
-                  </ion-item>
+                  <span class="physical-item"><ion-icon name="calendar-outline"></ion-icon> {p.birthDate}</span>
                 )}
                 {p.height && (
-                  <ion-item>
-                    <ion-label>Altura</ion-label>
-                    <ion-note slot="end">{p.height} cm</ion-note>
-                  </ion-item>
+                  <span class="physical-item"><ion-icon name="resize-outline"></ion-icon> {p.height} cm</span>
                 )}
                 {p.weight && (
-                  <ion-item>
-                    <ion-label>Peso</ion-label>
-                    <ion-note slot="end">{p.weight} kg</ion-note>
-                  </ion-item>
+                  <span class="physical-item"><ion-icon name="fitness-outline"></ion-icon> {p.weight} kg</span>
                 )}
-              </ion-list>
-            </ion-card-content>
-          </ion-card>
-        )}
+              </div>
+            )}
+            {this.isAdmin && (
+              <div class="admin-buttons">
+                <ion-button
+                  expand="block"
+                  fill="solid"
+                  color="tertiary"
+                  onClick={() => this.editPlayer.emit()}
+                >
+                  <ion-icon name="create-outline" slot="start" />
+                  Editar
+                </ion-button>
+                <ion-button
+                  expand="block"
+                  fill="solid"
+                  color="danger"
+                  onClick={() => this.deletePlayer.emit()}
+                >
+                  <ion-icon name="trash-outline" slot="start" />
+                  Eliminar
+                </ion-button>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Location */}
         {this.hasValidLocation(p.location) && (
@@ -189,6 +201,7 @@ export class PlayerDetail {
               {p.location?.address && <p>{p.location.address}</p>}
               <ion-button
                 fill="clear"
+                color="tertiary"
                 href={this.mapsUrl(p.location!.lat, p.location!.lng)}
                 target="_blank"
               >
@@ -199,15 +212,94 @@ export class PlayerDetail {
           </ion-card>
         )}
 
+        {/* Comments wrapper */}
+        <div class="comments-wrapper">
+        {/* Add Comment */}
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Añadir comentario</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <form onSubmit={(e) => this.handleSubmit(e)}>
+              <ion-item>
+                <ion-input
+                  label="Tu nombre"
+                  labelPlacement="floating"
+                  value={this.commentAuthor}
+                  onIonInput={(e: any) => (this.commentAuthor = e.target.value)}
+                  required
+                />
+              </ion-item>
+              <ion-item>
+                <ion-textarea
+                  label="Comentario"
+                  labelPlacement="floating"
+                  value={this.commentText}
+                  onIonInput={(e: any) => (this.commentText = e.target.value)}
+                  rows={3}
+                  maxlength={1000}
+                  required
+                />
+              </ion-item>
+              <ion-item>
+                <ion-label>Valoración</ion-label>
+                <div class="rating-input">
+                  {this.stars(5).map((s) => (
+                    <span
+                      class={{ 'star-btn': true, 'star-filled': s <= (this.hoverRating || this.commentRating) }}
+                      onClick={() => (this.commentRating = s)}
+                      onMouseEnter={() => (this.hoverRating = s)}
+                      onMouseLeave={() => (this.hoverRating = 0)}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              </ion-item>
+              <ion-item>
+                <ion-label>Ubicación</ion-label>
+                <ion-button
+                  fill="outline"
+                  size="small"
+                  type="button"
+                  color="tertiary"
+                  disabled={this.locationLoading}
+                  onClick={() => this.useCurrentLocation()}
+                >
+                  {this.locationLoading ? (
+                    <ion-spinner slot="start" />
+                  ) : (
+                    <ion-icon name="location-outline" slot="start" />
+                  )}
+                  {this.locationLoading
+                    ? 'Obteniendo ubicación...'
+                    : this.commentLocation
+                      ? `${this.commentLocation.lat.toFixed(4)}, ${this.commentLocation.lng.toFixed(4)}`
+                      : 'Añadir ubicación'}
+                </ion-button>
+              </ion-item>
+              {(this.error) && (
+                <ion-note color="danger" class="ion-padding-top">
+                  {this.error}
+                </ion-note>
+              )}
+              <ion-button
+                type="submit"
+                expand="block"
+                class="ion-margin-top"
+                disabled={!this.commentAuthor.trim() || !this.commentText.trim() || this.commentLoading}
+              >
+                {this.commentLoading && <ion-spinner slot="start" />}
+                Publicar comentario
+              </ion-button>
+            </form>
+          </ion-card-content>
+        </ion-card>
+
         {/* Comments */}
         <ion-card>
           <ion-card-header>
-            <ion-card-title>
-              Comentarios
-              {this.comments.length > 0 && (
-                <ion-note class="avg-rating">{this.averageRating}</ion-note>
-              )}
-            </ion-card-title>
+            <ion-card-title>Comentarios</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             {this.comments.length > 0 ? (
@@ -222,20 +314,14 @@ export class PlayerDetail {
                             <span class={{ 'star-filled': s <= c.rating }}>★</span>
                           ))}
                         </span>
+                        <span class="comment-meta">
+                          {new Date(c.createdAt).toLocaleString()}
+                          {this.hasValidLocation(c.location) && (
+                            <span> · {c.location!.lat.toFixed(4)}, {c.location!.lng.toFixed(4)}</span>
+                          )}
+                        </span>
                       </div>
-                      <p>{c.text}</p>
-                      {this.hasValidLocation(c.location) && (
-                        <ion-button
-                          fill="clear"
-                          size="small"
-                          href={this.mapsUrl(c.location!.lat, c.location!.lng)}
-                          target="_blank"
-                        >
-                          <ion-icon name="map-outline" slot="start" />
-                          {c.location!.lat}, {c.location!.lng}
-                        </ion-button>
-                      )}
-                      <ion-note>{new Date(c.createdAt).toLocaleString()}</ion-note>
+                      <p class="comment-text">{c.text}</p>
                     </ion-label>
                     {this.isAdmin && (
                       <ion-button
@@ -258,76 +344,7 @@ export class PlayerDetail {
             )}
           </ion-card-content>
         </ion-card>
-
-        {/* Add Comment */}
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Añadir comentario</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <form onSubmit={(e) => this.handleSubmit(e)}>
-              <ion-item>
-                <ion-label position="floating">Tu nombre</ion-label>
-                <ion-input
-                  value={this.commentAuthor}
-                  onIonInput={(e: any) => (this.commentAuthor = e.target.value)}
-                  required
-                />
-              </ion-item>
-              <ion-item>
-                <ion-label position="floating">Comentario</ion-label>
-                <ion-textarea
-                  value={this.commentText}
-                  onIonInput={(e: any) => (this.commentText = e.target.value)}
-                  rows={3}
-                  maxlength={1000}
-                  required
-                />
-              </ion-item>
-              <ion-item>
-                <ion-label>Valoración</ion-label>
-                <div class="rating-input">
-                  {this.stars(5).map((s) => (
-                    <span
-                      class={{ 'star-btn': true, 'star-filled': s <= this.commentRating }}
-                      onClick={() => (this.commentRating = s)}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </ion-item>
-              <ion-item>
-                <ion-label>Ubicación</ion-label>
-                <ion-button
-                  fill="outline"
-                  size="small"
-                  type="button"
-                  onClick={() => this.useCurrentLocation()}
-                >
-                  <ion-icon name="location-outline" slot="start" />
-                  {this.commentLocation
-                    ? `${this.commentLocation.lat.toFixed(4)}, ${this.commentLocation.lng.toFixed(4)}`
-                    : 'Añadir ubicación'}
-                </ion-button>
-              </ion-item>
-              {(this.error) && (
-                <ion-note color="danger" class="ion-padding-top">
-                  {this.error}
-                </ion-note>
-              )}
-              <ion-button
-                type="submit"
-                expand="block"
-                class="ion-margin-top"
-                disabled={!this.commentAuthor.trim() || !this.commentText.trim() || this.commentLoading}
-              >
-                {this.commentLoading && <ion-spinner slot="start" />}
-                Publicar comentario
-              </ion-button>
-            </form>
-          </ion-card-content>
-        </ion-card>
+        </div>
       </div>
     );
   }

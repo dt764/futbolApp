@@ -1,55 +1,27 @@
 import { CUSTOM_ELEMENTS_SCHEMA, Component, inject, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { AuthService } from '../services/auth.service';
 import { PlayerState } from '../services/player.state';
 import { ApiService } from '../services/api.service';
 import { Comment, CommentsResponse } from '../models/comment.models';
+import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 
 @Component({
   selector: 'app-player-detail',
-  template: `
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/players"></ion-back-button>
-        </ion-buttons>
-        <ion-title>{{ getPlayerName() }}</ion-title>
-        <ion-buttons slot="end">
-          <ion-button
-            *ngIf="auth.appUser?.role === 'admin'"
-            [routerLink]="'/players/' + playerId + '/edit'"
-            color="primary"
-          >
-            <ion-icon name="create-outline" slot="start"></ion-icon>
-            Editar
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content>
-      <player-detail
-        [player]="player()"
-        [comments]="comments"
-        [isAdmin]="auth.appUser?.role === 'admin'"
-        [loading]="loading()"
-        [commentLoading]="commentLoading"
-        [error]="error"
-        (addComment)="handleAddComment($any($event))"
-        (deleteComment)="handleDeleteComment($any($event))"
-      ></player-detail>
-    </ion-content>
-  `,
+  templateUrl: 'player-detail.page.html',
   styleUrls: ['player-detail.page.scss'],
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [IonicModule, CommonModule, RouterModule],
+  imports: [IonicModule, CommonModule, RouterModule, AuthHeaderComponent],
 })
 export class PlayerDetailPage implements OnInit {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private alertCtrl = inject(AlertController);
   protected auth = inject(AuthService);
   private playerState = inject(PlayerState);
 
@@ -113,5 +85,30 @@ export class PlayerDetailPage implements OnInit {
         this.error = 'Error al eliminar el comentario';
       },
     });
+  }
+
+  handleEditPlayer() {
+    this.router.navigateByUrl(`/players/${this.playerId}/edit`);
+  }
+
+  async handleDeletePlayer() {
+    const alert = await this.alertCtrl.create({
+      header: 'Eliminar jugador',
+      message: '¿Estás seguro de que quieres eliminar este jugador? Esta acción no se puede deshacer.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: () => {
+            this.playerState.deletePlayer(this.playerId).subscribe({
+              next: () => this.router.navigateByUrl('/players'),
+              error: () => {},
+            });
+          },
+        },
+      ],
+    });
+    alert.present();
   }
 }

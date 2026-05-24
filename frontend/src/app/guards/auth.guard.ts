@@ -9,7 +9,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(): Promise<boolean | UrlTree> {
     await this.auth.ready;
-    if (this.auth.isLoggedIn) return true;
+    if (this.auth.isLoggedIn()) return true;
     return this.router.parseUrl('/login');
   }
 }

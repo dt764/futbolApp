@@ -39,6 +39,11 @@ export const routes: Routes = [
     loadComponent: () => import('./register/register.page').then((m) => m.RegisterPage),
   },
   {
+    path: 'profile',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./profile/profile.page').then((m) => m.ProfilePage),
+  },
+  {
     path: 'ideal-team',
     canActivate: [AuthGuard],
     loadComponent: () => import('./ideal-team/ideal-team.page').then((m) => m.IdealTeamPage),

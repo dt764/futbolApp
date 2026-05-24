@@ -4,13 +4,14 @@ import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
+import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 
 @Component({
   selector: 'app-register',
   templateUrl: 'register.page.html',
   styleUrls: ['register.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
 })
 export class RegisterPage {
   private auth = inject(AuthService);

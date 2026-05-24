@@ -8,13 +8,14 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 import { PlayerState } from '../services/player.state';
 import { GeoLocation } from '../models/player.models';
+import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 
 @Component({
   selector: 'app-player-create',
   templateUrl: 'player-create.page.html',
   styleUrls: ['player-create.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
 })
 export class PlayerCreatePage {
   private state = inject(PlayerState);

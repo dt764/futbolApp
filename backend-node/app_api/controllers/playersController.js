@@ -3,7 +3,7 @@ const { searchPlayers } = require('../services/apiFootball');
 
 const list = async (req, res) => {
   try {
-    const { name, team, league, page = 1, limit = 20 } = req.query;
+    const { name, team, league, createdBy, createdFrom, createdTo, page = 1, limit = 20 } = req.query;
 
     const filter = {};
 
@@ -15,6 +15,14 @@ const list = async (req, res) => {
     }
     if (league) {
       filter.league = { $regex: league, $options: 'i' };
+    }
+    if (createdBy) {
+      filter.createdBy = createdBy;
+    }
+    if (createdFrom || createdTo) {
+      filter.createdAt = {};
+      if (createdFrom) filter.createdAt.$gte = new Date(createdFrom);
+      if (createdTo) filter.createdAt.$lte = new Date(createdTo);
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
