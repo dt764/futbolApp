@@ -69,6 +69,13 @@ testem.log
 /cypress/screenshots
 /cypress/videos
 
+# Capacitor / Android
+/android
+/resources
+
+# Utility scripts
+/scripts
+
 # System files
 .DS_Store
 Thumbs.db

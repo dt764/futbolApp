@@ -8,5 +8,5 @@ export const environment = {
     messagingSenderId: '212440571622',
     appId: '1:212440571622:web:6d0923dc60d09a7fb5e527',
   },
-  apiUrl: 'https://football-api-develop-vh5o2ls4ca-ew.a.run.app/',
+  apiUrl: 'https://football-api-develop-vh5o2ls4ca-ew.a.run.app',
 };

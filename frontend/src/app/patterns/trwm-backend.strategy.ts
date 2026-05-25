@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BackendStrategy, BackendType } from './backend-strategy';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TrwmBackendStrategy implements BackendStrategy {
@@ -7,6 +8,6 @@ export class TrwmBackendStrategy implements BackendStrategy {
   readonly label = 'TRWM';
 
   getBaseUrl(): string {
-    return 'http://localhost:3000';
+    return environment.apiUrl ?? 'http://localhost:3000';
   }
 }

@@ -12,6 +12,9 @@ import { PlayerState } from '../app/services/player.state';
 import { AuthService } from '../app/services/auth.service';
 import { of, throwError } from 'rxjs';
 import { Player } from '../app/models/player.models';
+import { environment } from '../environments/environment';
+
+const apiUrl = environment.apiUrl;
 
 // ─── Pure functions (no DI) ───────────────────────────────────────
 describe('validateEmail', () => {
@@ -34,14 +37,14 @@ describe('TrwmBackendStrategy', () => {
   it('works', () => {
     const s = new TrwmBackendStrategy();
     expect(s.type).to.equal('trwm');
-    expect(s.getBaseUrl()).to.equal('http://localhost:3000');
+    expect(s.getBaseUrl()).to.equal(apiUrl);
   });
 });
 describe('DwscBackendStrategy', () => {
   it('works', () => {
     const s = new DwscBackendStrategy();
     expect(s.type).to.equal('dwsc');
-    expect(s.getBaseUrl()).to.equal('http://localhost:8080');
+    expect(s.getBaseUrl()).to.equal(apiUrl);
   });
 });
 
@@ -52,8 +55,8 @@ describe('BackendFactory', () => {
     TestBed.configureTestingModule({ providers: [BackendFactory, TrwmBackendStrategy, DwscBackendStrategy] });
     factory = TestBed.inject(BackendFactory);
   });
-  it('TRWM', () => expect(factory.getStrategy('trwm').getBaseUrl()).to.equal('http://localhost:3000'));
-  it('DWSC', () => expect(factory.getStrategy('dwsc').getBaseUrl()).to.equal('http://localhost:8080'));
+  it('TRWM', () => expect(factory.getStrategy('trwm').getBaseUrl()).to.equal(apiUrl));
+  it('DWSC', () => expect(factory.getStrategy('dwsc').getBaseUrl()).to.equal(apiUrl));
   it('unknown', () => expect(() => factory.getStrategy('x' as any)).to.throw());
   it('all', () => expect(factory.getAll()).to.have.length(2));
 });
@@ -101,37 +104,37 @@ describe('ApiService', () => {
 
   it('GET', () => {
     service.get<{ ok: boolean }>('/health').subscribe((r) => expect(r.ok).to.be.true);
-    const req = httpCtrl.expectOne('http://localhost:3000/health');
+    const req = httpCtrl.expectOne(`${apiUrl}/health`);
     expect(req.request.method).to.equal('GET');
     req.flush({ ok: true });
   });
   it('POST', () => {
     service.post<{ id: number }>('/players', { name: 'test' }).subscribe((r) => expect(r.id).to.equal(1));
-    const req = httpCtrl.expectOne('http://localhost:3000/players');
+    const req = httpCtrl.expectOne(`${apiUrl}/players`);
     expect(req.request.method).to.equal('POST');
     expect(req.request.body).to.deep.equal({ name: 'test' });
     req.flush({ id: 1 });
   });
   it('PUT', () => {
     service.put<{ ok: boolean }>('/players/1', { name: 'x' }).subscribe((r) => expect(r.ok).to.be.true);
-    const req = httpCtrl.expectOne('http://localhost:3000/players/1');
+    const req = httpCtrl.expectOne(`${apiUrl}/players/1`);
     expect(req.request.method).to.equal('PUT');
     req.flush({ ok: true });
   });
   it('DELETE', () => {
     service.delete<{ message: string }>('/players/1').subscribe((r) => expect(r.message).to.equal('ok'));
-    const req = httpCtrl.expectOne('http://localhost:3000/players/1');
+    const req = httpCtrl.expectOne(`${apiUrl}/players/1`);
     expect(req.request.method).to.equal('DELETE');
     req.flush({ message: 'ok' });
   });
   it('uses baseUrl from toggle', () => {
     toggle.set('dwsc');
     service.get('/health').subscribe();
-    httpCtrl.expectOne('http://localhost:8080/health');
+    httpCtrl.expectOne(`${apiUrl}/health`);
   });
   it('sends auth header with token', () => {
     service.get('/health', 'mytoken').subscribe();
-    const req = httpCtrl.expectOne('http://localhost:3000/health');
+    const req = httpCtrl.expectOne(`${apiUrl}/health`);
     expect(req.request.headers.get('Authorization')).to.equal('Bearer mytoken');
     req.flush({});
   });

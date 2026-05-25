@@ -15,7 +15,9 @@
     "e2e:open": "cypress open --e2e",
     "e2e:ci": "cypress run --e2e --browser chrome --headless",
     "lint": "ng lint",
-    "copy:stencil": "if (Test-Path ../stencil/dist) { robocopy ../stencil/dist src/assets/stencil/dist /E /NP /NJH /NJS | Out-Null; robocopy ../stencil/loader src/assets/stencil/loader /E /NP /NJH /NJS | Out-Null }"
+    "copy:stencil": "if (Test-Path ../stencil/dist) { robocopy ../stencil/dist src/assets/stencil/dist /E /NP /NJH /NJS | Out-Null; robocopy ../stencil/loader src/assets/stencil/loader /E /NP /NJH /NJS | Out-Null }",
+    "sync:icons": "node scripts/sync-icons.mjs",
+    "generate:icons": "npm install --no-save sharp && node scripts/generate-icons.mjs && npm uninstall sharp"
   },
   "private": true,
   "dependencies": {
@@ -27,6 +29,7 @@
     "@angular/platform-browser": "^20.0.0",
     "@angular/platform-browser-dynamic": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@capacitor/android": "^8.3.4",
     "@capacitor/app": "8.1.0",
     "@capacitor/camera": "^8.2.0",
     "@capacitor/core": "8.3.4",
