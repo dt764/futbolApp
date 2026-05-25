@@ -69,12 +69,10 @@ testem.log
 /cypress/screenshots
 /cypress/videos
 
-# Capacitor / Android
+# Capacitor / Android project (generated)
 /android
-/resources
 
-# Utility scripts
-/scripts
+
 
 # System files
 .DS_Store

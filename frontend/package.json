@@ -17,7 +17,8 @@
     "lint": "ng lint",
     "copy:stencil": "if (Test-Path ../stencil/dist) { robocopy ../stencil/dist src/assets/stencil/dist /E /NP /NJH /NJS | Out-Null; robocopy ../stencil/loader src/assets/stencil/loader /E /NP /NJH /NJS | Out-Null }",
     "sync:icons": "node scripts/sync-icons.mjs",
-    "generate:icons": "npm install --no-save sharp && node scripts/generate-icons.mjs && npm uninstall sharp"
+    "generate:icons": "npm install --no-save sharp && node scripts/generate-icons.mjs && npm uninstall sharp",
+    "setup:android": "node scripts/setup-android.mjs"
   },
   "private": true,
   "dependencies": {
@@ -37,6 +38,7 @@
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.3",
     "@capacitor/status-bar": "8.0.2",
+    "@capawesome/capacitor-android-edge-to-edge-support": "^8.0.8",
     "@ionic/angular": "^8.0.0",
     "@ionic/pwa-elements": "^3.4.0",
     "firebase": "^12.13.0",

@@ -9,6 +9,7 @@ import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
 import { forkJoin, catchError, of } from 'rxjs';
 import { sanitizeError } from '../validators';
+import { PlayerState } from '../services/player.state';
 
 @Component({
   selector: 'app-player-import',
@@ -19,6 +20,7 @@ import { sanitizeError } from '../validators';
 })
 export class PlayerImportPage {
   private api = inject(ApiService);
+  private playerState = inject(PlayerState);
 
   search = { name: '', team: '', league: '' };
   results: ApiPlayer[] = [];
@@ -137,6 +139,7 @@ export class PlayerImportPage {
         let msg = `${successful} jugador${successful !== 1 ? 'es' : ''} importado${successful !== 1 ? 's' : ''} correctamente`;
         if (failed > 0) msg += `. ${failed} fallaron (posiblemente ya existen)`;
         this.importSuccess = msg;
+        this.playerState.refreshPlayers();
       }
     });
   }

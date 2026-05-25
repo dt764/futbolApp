@@ -103,7 +103,10 @@ export class PlayerDetailPage implements OnInit {
           role: 'destructive',
           handler: () => {
             this.playerState.deletePlayer(this.playerId).subscribe({
-              next: () => this.router.navigateByUrl('/players'),
+              next: () => {
+                this.playerState.refreshPlayers();
+                this.router.navigateByUrl('/players');
+              },
               error: () => {},
             });
           },
