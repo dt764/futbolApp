@@ -4,7 +4,7 @@
       <ion-menu-button></ion-menu-button>
       <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
     </ion-buttons>
-    <ion-title class="header-title">Iniciar sesión</ion-title>
+    <ion-title class="header-title">Iniciar sesión <app-admin-badge/></ion-title>
     <ion-buttons slot="end">
       <app-auth-header></app-auth-header>
     </ion-buttons>
@@ -12,27 +12,55 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form (ngSubmit)="login()">
-    <ion-item>
-      <ion-label position="floating">Email</ion-label>
-      <ion-input name="email" type="email" [(ngModel)]="email" required></ion-input>
-    </ion-item>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <div class="auth-icon-wrapper">
+          <ion-icon name="log-in-outline"></ion-icon>
+        </div>
+        <h1>Bienvenido</h1>
+        <p class="auth-subtitle">Inicia sesión para acceder a todas las funciones</p>
+      </div>
 
-    <ion-item>
-      <ion-label position="floating">Contraseña</ion-label>
-      <ion-input name="password" type="password" [(ngModel)]="password" required></ion-input>
-    </ion-item>
+      <form (ngSubmit)="login()">
+        <ion-item [class.item-has-error]="emailError">
+          <ion-label position="floating">Email</ion-label>
+          <ion-input name="email" type="email" [(ngModel)]="email" (ionBlur)="validateField()" required></ion-input>
+        </ion-item>
+        <ion-note *ngIf="emailError" color="danger" class="ion-padding-start field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ emailError }}
+        </ion-note>
 
-    <ion-note *ngIf="error" color="danger" class="ion-padding-top">
-      {{ error }}
-    </ion-note>
+        <ion-item [class.item-has-error]="passwordError">
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input name="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" (ionBlur)="validateField()" required>
+            <ion-icon slot="end" [name]="showPassword ? 'eye-off' : 'eye'" (click)="showPassword = !showPassword" class="password-toggle"></ion-icon>
+          </ion-input>
+        </ion-item>
+        <ion-note *ngIf="passwordError" color="danger" class="ion-padding-start field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ passwordError }}
+        </ion-note>
 
-    <ion-button type="submit" expand="block" class="ion-margin-top">
-      Entrar
-    </ion-button>
+        <ion-note *ngIf="error" color="danger" class="ion-padding-top error-note">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ error }}
+        </ion-note>
 
-    <ion-button routerLink="/register" expand="block" fill="clear">
-      ¿No tienes cuenta? Registrarse
-    </ion-button>
-  </form>
+        <ion-button type="submit" expand="block" class="submit-btn" [disabled]="loading">
+          <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
+          {{ loading ? 'Entrando...' : 'Entrar' }}
+        </ion-button>
+
+        <div class="auth-divider">
+          <span></span>
+        </div>
+
+        <ion-button routerLink="/register" expand="block" fill="clear" class="switch-btn">
+          ¿No tienes cuenta? <strong>Regístrate</strong>
+        </ion-button>
+      </form>
+    </div>
+  </div>
 </ion-content>

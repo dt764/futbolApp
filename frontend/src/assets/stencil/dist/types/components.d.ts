@@ -29,6 +29,7 @@ export namespace Components {
           * @default false
          */
         "loading": boolean;
+        "loggedInUser"?: string;
         "player"?: Player | null;
     }
 }
@@ -88,6 +89,7 @@ declare namespace LocalJSX {
           * @default false
          */
         "loading"?: boolean;
+        "loggedInUser"?: string;
         "onAddComment"?: (event: PlayerDetailCustomEvent<{
     author: string;
     text: string;
@@ -105,6 +107,7 @@ declare namespace LocalJSX {
         "loading": boolean;
         "commentLoading": boolean;
         "error": string;
+        "loggedInUser": string;
     }
 
     interface IntrinsicElements {

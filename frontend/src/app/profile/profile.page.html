@@ -4,7 +4,7 @@
       <ion-menu-button></ion-menu-button>
       <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
     </ion-buttons>
-    <ion-title class="header-title">Perfil</ion-title>
+    <ion-title class="header-title">Perfil <app-admin-badge/></ion-title>
     <ion-buttons slot="end">
       <app-auth-header></app-auth-header>
     </ion-buttons>
@@ -43,15 +43,64 @@
             <ion-label>Email</ion-label>
             <ion-note slot="end">{{ user.email }}</ion-note>
           </ion-item>
-          <ion-item *ngIf="user.displayName">
+          <ion-item *ngIf="!editing; else nameEditing">
             <ion-label>Nombre</ion-label>
-            <ion-note slot="end">{{ user.displayName }}</ion-note>
+            <ion-note slot="end">{{ user.displayName || user.email }}</ion-note>
+            <ion-button slot="end" fill="clear" size="small" (click)="startEdit()">
+              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+            </ion-button>
           </ion-item>
+          <ng-template #nameEditing>
+            <ion-item>
+              <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="editName"></ion-input>
+            </ion-item>
+            <div class="edit-actions">
+              <ion-button fill="clear" color="medium" (click)="cancelEdit()" [disabled]="saving">
+                Cancelar
+              </ion-button>
+              <ion-button fill="solid" color="primary" (click)="saveName()" [disabled]="saving || !editName.trim()">
+                <ion-spinner *ngIf="saving" slot="start"></ion-spinner>
+                Guardar
+              </ion-button>
+            </div>
+            <ion-note *ngIf="saveError" color="danger" class="ion-padding-start">{{ saveError }}</ion-note>
+          </ng-template>
           <ion-item>
             <ion-label>Rol</ion-label>
             <ion-note slot="end">{{ user.role || 'usuario' }}</ion-note>
           </ion-item>
         </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="auth.isLoggedIn()">
+      <ion-card-header>
+        <ion-card-title>Cambiar contraseña</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-input label="Contraseña actual" [type]="showPasswordCurrent ? 'text' : 'password'" labelPlacement="floating" [(ngModel)]="passwordCurrent">
+            <ion-icon slot="end" [name]="showPasswordCurrent ? 'eye-off' : 'eye'" (click)="showPasswordCurrent = !showPasswordCurrent" class="password-toggle"></ion-icon>
+          </ion-input>
+        </ion-item>
+        <ion-item [class.item-has-error]="passwordError">
+          <ion-input label="Nueva contraseña" [type]="showPasswordNew ? 'text' : 'password'" labelPlacement="floating" [(ngModel)]="passwordNew">
+            <ion-icon slot="end" [name]="showPasswordNew ? 'eye-off' : 'eye'" (click)="showPasswordNew = !showPasswordNew" class="password-toggle"></ion-icon>
+          </ion-input>
+        </ion-item>
+        <ion-item [class.item-has-error]="passwordError">
+          <ion-input label="Repetir nueva contraseña" [type]="showPasswordConfirm ? 'text' : 'password'" labelPlacement="floating" [(ngModel)]="passwordConfirm">
+            <ion-icon slot="end" [name]="showPasswordConfirm ? 'eye-off' : 'eye'" (click)="showPasswordConfirm = !showPasswordConfirm" class="password-toggle"></ion-icon>
+          </ion-input>
+        </ion-item>
+        <ion-note *ngIf="passwordError" color="danger" class="ion-padding-start ion-padding-top">{{ passwordError }}</ion-note>
+        <ion-note *ngIf="passwordSuccess" color="success" class="ion-padding-start ion-padding-top">Contraseña cambiada correctamente</ion-note>
+        <div class="edit-actions">
+          <ion-button fill="solid" color="primary" (click)="changePassword()" [disabled]="savingPassword">
+            <ion-spinner *ngIf="savingPassword" slot="start"></ion-spinner>
+            Cambiar contraseña
+          </ion-button>
+        </div>
       </ion-card-content>
     </ion-card>
   </div>

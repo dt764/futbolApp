@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { login, me } = require('../controllers/authController');
+const { login, me, updateMe } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 
 const router = Router();
@@ -67,5 +67,6 @@ router.post('/login', login);
  *         description: No autenticado
  */
 router.get('/me', authenticate, me);
+router.put('/me', authenticate, updateMe);
 
 module.exports = router;

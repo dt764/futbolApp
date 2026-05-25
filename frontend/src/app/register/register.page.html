@@ -4,7 +4,7 @@
       <ion-menu-button></ion-menu-button>
       <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
     </ion-buttons>
-    <ion-title class="header-title">Registrarse</ion-title>
+    <ion-title class="header-title">Registrarse <app-admin-badge/></ion-title>
     <ion-buttons slot="end">
       <app-auth-header></app-auth-header>
     </ion-buttons>
@@ -12,32 +12,70 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form (ngSubmit)="register()">
-    <ion-item>
-      <ion-label position="floating">Email</ion-label>
-      <ion-input name="email" type="email" [(ngModel)]="email" required></ion-input>
-    </ion-item>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <div class="auth-icon-wrapper">
+          <ion-icon name="person-add-outline"></ion-icon>
+        </div>
+        <h1>Crear cuenta</h1>
+        <p class="auth-subtitle">Regístrate para gestionar jugadores y más</p>
+      </div>
 
-    <ion-item>
-      <ion-label position="floating">Contraseña</ion-label>
-      <ion-input name="password" type="password" [(ngModel)]="password" required></ion-input>
-    </ion-item>
+      <form (ngSubmit)="register()">
+        <ion-item [class.item-has-error]="emailError">
+          <ion-label position="floating">Email</ion-label>
+          <ion-input name="email" type="email" [(ngModel)]="email" (ionBlur)="validateField('email')" required></ion-input>
+        </ion-item>
+        <ion-note *ngIf="emailError" color="danger" class="ion-padding-start field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ emailError }}
+        </ion-note>
 
-    <ion-item>
-      <ion-label position="floating">Confirmar contraseña</ion-label>
-      <ion-input name="confirmPassword" type="password" [(ngModel)]="confirmPassword" required></ion-input>
-    </ion-item>
+        <ion-item [class.item-has-error]="passwordError || passwordStrengthErrors.length">
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input name="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" (ionBlur)="validateField('password')" required>
+            <ion-icon slot="end" [name]="showPassword ? 'eye-off' : 'eye'" (click)="showPassword = !showPassword" class="password-toggle"></ion-icon>
+          </ion-input>
+        </ion-item>
+        <ion-note *ngIf="passwordError" color="danger" class="ion-padding-start field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ passwordError }}
+        </ion-note>
+        <ion-note *ngIf="passwordStrengthErrors.length" color="warning" class="ion-padding-start field-error">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          {{ passwordStrengthErrors.join(', ') }}
+        </ion-note>
 
-    <ion-note *ngIf="error" color="danger" class="ion-padding-top">
-      {{ error }}
-    </ion-note>
+        <ion-item [class.item-has-error]="confirmPasswordError">
+          <ion-label position="floating">Confirmar contraseña</ion-label>
+          <ion-input name="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="confirmPassword" (ionBlur)="validateField('confirmPassword')" required>
+            <ion-icon slot="end" [name]="showConfirmPassword ? 'eye-off' : 'eye'" (click)="showConfirmPassword = !showConfirmPassword" class="password-toggle"></ion-icon>
+          </ion-input>
+        </ion-item>
+        <ion-note *ngIf="confirmPasswordError" color="danger" class="ion-padding-start field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ confirmPasswordError }}
+        </ion-note>
 
-    <ion-button type="submit" expand="block" class="ion-margin-top">
-      Crear cuenta
-    </ion-button>
+        <ion-note *ngIf="error" color="danger" class="ion-padding-top error-note">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ error }}
+        </ion-note>
 
-    <ion-button routerLink="/login" expand="block" fill="clear">
-      ¿Ya tienes cuenta? Iniciar sesión
-    </ion-button>
-  </form>
+        <ion-button type="submit" expand="block" class="submit-btn" [disabled]="loading">
+          <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
+          {{ loading ? 'Creando cuenta...' : 'Crear cuenta' }}
+        </ion-button>
+
+        <div class="auth-divider">
+          <span></span>
+        </div>
+
+        <ion-button routerLink="/login" expand="block" fill="clear" class="switch-btn">
+          ¿Ya tienes cuenta? <strong>Inicia sesión</strong>
+        </ion-button>
+      </form>
+    </div>
+  </div>
 </ion-content>

@@ -5,7 +5,7 @@
       <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
       <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
-    <ion-title class="header-title">Equipo Ideal</ion-title>
+    <ion-title class="header-title">Equipo Ideal <app-admin-badge/></ion-title>
     <ion-buttons slot="end">
       <app-auth-header></app-auth-header>
     </ion-buttons>
@@ -13,76 +13,122 @@
 </ion-header>
 
 <ion-content>
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Generar equipo ideal con IA</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item>
-        <ion-label position="floating">Formación (opcional)</ion-label>
-        <ion-select [(ngModel)]="selectedFormation" interface="popover" placeholder="Selecciona una formación">
-          <ion-select-option *ngFor="let f of formations" [value]="f">{{ f }}</ion-select-option>
-        </ion-select>
-      </ion-item>
+  <div class="ideal-content">
+    <div class="config-section">
+      <div class="section-card">
+        <div class="section-icon">
+          <ion-icon name="settings-outline"></ion-icon>
+        </div>
+        <h3>Generar equipo ideal con IA</h3>
+        <p class="section-desc">Elige la formación y la fuente de jugadores, luego deja que la IA seleccione el mejor once</p>
 
-      <ion-item>
-        <ion-label>Fuente de jugadores</ion-label>
-        <ion-select [(ngModel)]="source" interface="popover">
-          <ion-select-option value="database">Base de datos (importados de API)</ion-select-option>
-          <ion-select-option value="fantasy">Jugadores predeterminados</ion-select-option>
-        </ion-select>
-      </ion-item>
+        <div class="config-row">
+          <div class="config-label">
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>Formación</span>
+          </div>
+          <div class="formation-chips">
+            <ion-chip
+              *ngFor="let f of formations"
+              [class.chip-active]="selectedFormation === f"
+              (click)="selectedFormation = selectedFormation === f ? '' : f"
+            >
+              {{ f }}
+            </ion-chip>
+            <ion-chip
+              *ngIf="selectedFormation"
+              color="medium"
+              (click)="selectedFormation = ''"
+            >
+              <ion-icon name="close-outline"></ion-icon>
+              Limpiar
+            </ion-chip>
+          </div>
+        </div>
 
-      <ion-button
-        expand="block"
-        class="ion-margin-top"
-        (click)="generate()"
-        [disabled]="loading"
-      >
-        <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
-        {{ loading ? 'Generando...' : 'Generar equipo ideal' }}
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
+        <div class="config-row">
+          <div class="config-label">
+            <ion-icon name="people-outline"></ion-icon>
+            <span>Jugadores</span>
+          </div>
+          <ion-segment [(ngModel)]="source" class="source-segment">
+            <ion-segment-button value="database">
+              <ion-icon name="server-outline"></ion-icon>
+              <ion-label>Base de datos</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="fantasy">
+              <ion-icon name="star-outline"></ion-icon>
+              <ion-label>Predeterminados</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
 
-  <ion-note *ngIf="error" color="danger" class="ion-padding-start">
-    {{ error }}
-  </ion-note>
+        <ion-button
+          expand="block"
+          class="generate-btn"
+          (click)="generate()"
+          [disabled]="loading"
+        >
+          <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!loading" name="sparkles-outline" slot="start"></ion-icon>
+          {{ loading ? 'Generando...' : 'Generar equipo ideal' }}
+        </ion-button>
+      </div>
+    </div>
 
-  <ng-container *ngIf="team">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Equipo ideal — {{ teamFormation || 'Sin formación' }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list>
-          <ion-item *ngFor="let p of sortedTeam()">
-            <ion-avatar slot="start" class="position-avatar">
-              <div class="position-badge {{ p.position.toLowerCase() }}">
-                {{ p.position === 'Portero' ? 'POR' : p.position === 'Defensa' ? 'DEF' : p.position === 'Centrocampista' ? 'MED' : 'DEL' }}
-              </div>
-            </ion-avatar>
-            <ion-label>
-              <h2>{{ p.name }}</h2>
-              <p>{{ p.position }} <span *ngIf="p.team">&middot; {{ p.team }}</span></p>
-              <p *ngIf="p.league || p.nationality" class="meta">
+    <ion-note *ngIf="error" color="danger" class="error-note">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      {{ error }}
+    </ion-note>
+
+    <ng-container *ngIf="team">
+      <div class="team-header">
+        <div class="formation-badge">
+          <ion-icon name="shirt-outline"></ion-icon>
+          <span>{{ teamFormation || 'Sin formación' }}</span>
+        </div>
+        <span class="player-count">{{ team.length }} jugadores</span>
+      </div>
+
+      <div class="player-grid">
+        <div
+          *ngFor="let p of sortedTeam(); let i = index"
+          class="player-card"
+          [class.starting]="i < 11"
+        >
+          <div class="player-card-inner">
+            <div class="player-pos-badge {{ p.position.toLowerCase() }}">
+              <span class="pos-abbr">{{ positionAbbr(p.position) }}</span>
+            </div>
+            <div class="player-info">
+              <h4>{{ p.name }}</h4>
+              <p class="player-position">{{ p.position }}</p>
+              <p *ngIf="p.team || p.nationality" class="player-meta">
+                <span *ngIf="p.team">{{ p.team }}</span>
+                <span *ngIf="p.team && p.nationality"> · </span>
                 <span *ngIf="p.nationality">{{ p.nationality }}</span>
-                <span *ngIf="p.league && p.nationality"> &middot; </span>
-                <span *ngIf="p.league">{{ p.league }}</span>
               </p>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
+            </div>
+            <div class="player-number" *ngIf="i < 11">{{ i + 1 }}</div>
+          </div>
+        </div>
+      </div>
 
-    <ion-card *ngIf="reasoning">
-      <ion-card-header>
-        <ion-card-title>Justificación de la IA</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
+      <div class="reasoning-card" *ngIf="reasoning">
+        <div class="reasoning-header">
+          <ion-icon name="chatbubbles-outline"></ion-icon>
+          <span>Justificación de la IA</span>
+        </div>
         <p>{{ reasoning }}</p>
-      </ion-card-content>
-    </ion-card>
-  </ng-container>
+      </div>
+    </ng-container>
+
+    <div class="empty-state" *ngIf="!team && !loading && !error">
+      <div class="empty-icon">
+        <ion-icon name="football-outline"></ion-icon>
+      </div>
+      <h3>Sin equipo aún</h3>
+      <p>Configura los parámetros y pulsa "Generar equipo ideal" para ver el resultado</p>
+    </div>
+  </div>
 </ion-content>

@@ -45,7 +45,31 @@ const generate = async (req, res) => {
     }
 
     const service = createIdealTeamService();
-    const team = await service.generateIdealTeam({ players, formation });
+    const raw = await service.generateIdealTeam({ players, formation });
+
+    const lookup = {};
+    for (const p of players) lookup[p.name.toLowerCase()] = p;
+
+    const enrich = (name, pos) => {
+      const found = lookup[name.toLowerCase()];
+      return {
+        name,
+        position: pos,
+        team: found?.team || '',
+        league: found?.league || '',
+        nationality: found?.nationality || '',
+      };
+    };
+
+    const team = {
+      formation: raw.formation,
+      players: [
+        ...(raw.startingXI || []).map(p => enrich(p.name, p.position)),
+        ...(raw.substitutes || []).map(p => enrich(p.name, p.position)),
+      ],
+      reasoning: raw.summary || '',
+    };
+
     res.json({ team, source });
   } catch (err) {
     if (err.message?.startsWith('Groq API error') || err.message?.includes('GROQ_API_KEY')) {

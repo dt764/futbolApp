@@ -5,7 +5,7 @@
       <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
       <ion-back-button defaultHref="/players"></ion-back-button>
     </ion-buttons>
-    <ion-title class="header-title">Nuevo jugador</ion-title>
+    <ion-title class="header-title">Nuevo jugador <app-admin-badge/></ion-title>
     <ion-buttons slot="end">
       <app-auth-header></app-auth-header>
     </ion-buttons>
@@ -13,26 +13,34 @@
 </ion-header>
 
 <ion-content>
-  <ion-card *ngIf="success">
-    <ion-card-content class="ion-text-center">
-      <ion-icon name="checkmark-circle" color="success" size="large"></ion-icon>
-      <p>Jugador creado correctamente</p>
-      <ion-button routerLink="/players" fill="clear">Volver al listado</ion-button>
-      <ion-button (click)="success = false" fill="outline">Añadir otro</ion-button>
-    </ion-card-content>
-  </ion-card>
+  <div class="success-card" *ngIf="success">
+    <div class="success-icon-wrapper">
+      <ion-icon name="checkmark-circle"></ion-icon>
+    </div>
+    <h2>Jugador creado</h2>
+    <p>El jugador se añadió correctamente</p>
+    <div class="success-actions">
+      <ion-button routerLink="/players" fill="solid" class="success-btn">Volver al listado</ion-button>
+      <ion-button (click)="success = false" fill="outline" class="success-btn-outline">Añadir otro</ion-button>
+    </div>
+  </div>
 
-  <ng-container *ngIf="!success">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Datos del jugador</ion-card-title>
-      </ion-card-header>
+  <div class="create-container" *ngIf="!success">
+    <div class="form-grid">
+      <div class="form-section form-personal">
+        <div class="section-header">
+          <ion-icon name="person-outline"></ion-icon>
+          <h3>Información personal</h3>
+        </div>
 
-      <ion-card-content>
-        <ion-item>
+        <ion-item [class.item-has-error]="nameError">
           <ion-label position="floating">Nombre completo *</ion-label>
-          <ion-input [(ngModel)]="form.name" required></ion-input>
+          <ion-input [(ngModel)]="form.name" (ionBlur)="validateField('name')" required></ion-input>
         </ion-item>
+        <ion-note *ngIf="nameError" color="danger" class="field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ nameError }}
+        </ion-note>
         <ion-item>
           <ion-label position="floating">Nombre</ion-label>
           <ion-input [(ngModel)]="form.firstname"></ion-input>
@@ -46,21 +54,36 @@
           <ion-input [(ngModel)]="form.nationality"></ion-input>
         </ion-item>
         <ion-item>
+          <ion-input label="Fecha de nacimiento" type="date" labelPlacement="floating" [(ngModel)]="form.birthDate"></ion-input>
+        </ion-item>
+      </div>
+
+      <div class="form-section form-deportivo">
+        <div class="section-header">
+          <ion-icon name="fitness-outline"></ion-icon>
+          <h3>Información deportiva</h3>
+        </div>
+
+        <ion-item>
           <ion-label position="floating">Posición</ion-label>
           <ion-input [(ngModel)]="form.position"></ion-input>
         </ion-item>
-        <ion-item>
-          <ion-label position="floating">Fecha de nacimiento</ion-label>
-          <ion-input type="date" [(ngModel)]="form.birthDate"></ion-input>
-        </ion-item>
-        <ion-item>
+        <ion-item [class.item-has-error]="heightError">
           <ion-label position="floating">Altura (cm)</ion-label>
-          <ion-input type="number" [(ngModel)]="form.height"></ion-input>
+          <ion-input type="number" [(ngModel)]="form.height" (ionBlur)="validateField('height')"></ion-input>
         </ion-item>
-        <ion-item>
+        <ion-note *ngIf="heightError" color="danger" class="field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ heightError }}
+        </ion-note>
+        <ion-item [class.item-has-error]="weightError">
           <ion-label position="floating">Peso (kg)</ion-label>
-          <ion-input type="number" [(ngModel)]="form.weight"></ion-input>
+          <ion-input type="number" [(ngModel)]="form.weight" (ionBlur)="validateField('weight')"></ion-input>
         </ion-item>
+        <ion-note *ngIf="weightError" color="danger" class="field-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ weightError }}
+        </ion-note>
         <ion-item>
           <ion-label position="floating">Equipo</ion-label>
           <ion-input [(ngModel)]="form.team"></ion-input>
@@ -69,23 +92,24 @@
           <ion-label position="floating">Liga</ion-label>
           <ion-input [(ngModel)]="form.league"></ion-input>
         </ion-item>
-      </ion-card-content>
-    </ion-card>
+      </div>
 
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Foto</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
+      <div class="form-section form-foto">
+        <div class="section-header">
+          <ion-icon name="camera-outline"></ion-icon>
+          <h3>Foto</h3>
+        </div>
+
         <div class="photo-section">
           <div class="photo-preview" *ngIf="photoPreview">
             <img [src]="photoPreview" alt="Preview" />
-            <ion-button fill="clear" size="small" color="danger" (click)="clearPhoto()">
+            <ion-button fill="clear" size="small" (click)="clearPhoto()" class="photo-remove-btn">
               <ion-icon name="close-circle" slot="icon-only"></ion-icon>
             </ion-button>
           </div>
           <div class="photo-placeholder" *ngIf="!photoPreview">
-            <ion-icon name="person-circle-outline" size="large"></ion-icon>
+            <ion-icon name="person-circle-outline"></ion-icon>
+            <span>Sin foto</span>
           </div>
         </div>
 
@@ -104,33 +128,42 @@
           <ion-label position="floating">O pega una URL</ion-label>
           <ion-input [(ngModel)]="form.photo" (ionChange)="usePhotoUrl()" type="url"></ion-input>
         </ion-item>
-      </ion-card-content>
-    </ion-card>
+      </div>
 
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Ubicación</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
+      <div class="form-section form-ubicacion">
+        <div class="section-header">
+          <ion-icon name="location-outline"></ion-icon>
+          <h3>Ubicación</h3>
+        </div>
+
         <ng-container *ngIf="form.location; else noLocation">
-          <ion-item>
+          <ion-item [class.item-has-error]="latError">
             <ion-label position="floating">Latitud</ion-label>
-            <ion-input type="number" [(ngModel)]="form.location.lat"></ion-input>
+            <ion-input type="number" [(ngModel)]="form.location.lat" (ionBlur)="validateField('lat')"></ion-input>
           </ion-item>
-          <ion-item>
+          <ion-note *ngIf="latError" color="danger" class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ latError }}
+          </ion-note>
+          <ion-item [class.item-has-error]="lngError">
             <ion-label position="floating">Longitud</ion-label>
-            <ion-input type="number" [(ngModel)]="form.location.lng"></ion-input>
+            <ion-input type="number" [(ngModel)]="form.location.lng" (ionBlur)="validateField('lng')"></ion-input>
           </ion-item>
+          <ion-note *ngIf="lngError" color="danger" class="field-error">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ lngError }}
+          </ion-note>
         </ng-container>
         <ng-template #noLocation>
-          <p class="ion-text-center ion-padding">No hay ubicación establecida.</p>
+          <p class="no-location-text">No hay ubicación establecida.</p>
         </ng-template>
 
         <div class="location-actions">
-          <ion-button fill="outline" size="small" (click)="useCurrentLocation()">
-            <ion-icon name="location-outline" slot="start"></ion-icon>
-            Usar mi ubicación
-          </ion-button>
+            <ion-button fill="outline" size="small" (click)="useCurrentLocation()" [disabled]="loadingLocation">
+              <ion-icon *ngIf="!loadingLocation" name="location-outline" slot="start"></ion-icon>
+              <ion-spinner *ngIf="loadingLocation" name="crescent" slot="start"></ion-spinner>
+              {{ loadingLocation ? 'Obteniendo ubicación...' : 'Usar mi ubicación' }}
+            </ion-button>
           <ion-button fill="outline" size="small" color="danger" (click)="clearLocation()" *ngIf="hasValidLocation()">
             <ion-icon name="close-circle-outline" slot="start"></ion-icon>
             Quitar ubicación
@@ -143,27 +176,27 @@
           size="small"
           [href]="mapsUrl()"
           target="_blank"
-          class="ion-margin-top"
+          class="maps-btn"
         >
           <ion-icon name="map-outline" slot="start"></ion-icon>
           Ver en Google Maps
         </ion-button>
-      </ion-card-content>
-    </ion-card>
+      </div>
+    </div>
 
-    <ion-note *ngIf="error" color="danger" class="ion-padding-start">
+    <ion-note *ngIf="error" class="error-note">
+      <ion-icon name="alert-circle-outline"></ion-icon>
       {{ error }}
     </ion-note>
 
-    <div class="ion-padding">
-      <ion-button
-        expand="block"
-        (click)="submit()"
-        [disabled]="!form.name.trim() || submitting"
-      >
-        <ion-spinner *ngIf="submitting" slot="start"></ion-spinner>
-        {{ submitting ? 'Guardando...' : 'Crear jugador' }}
-      </ion-button>
-    </div>
-  </ng-container>
+    <ion-button
+      expand="block"
+      (click)="submit()"
+      [disabled]="submitting"
+      class="submit-btn"
+    >
+      <ion-spinner *ngIf="submitting" slot="start"></ion-spinner>
+      {{ submitting ? 'Guardando...' : 'Crear jugador' }}
+    </ion-button>
+  </div>
 </ion-content>

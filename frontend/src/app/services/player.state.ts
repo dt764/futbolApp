@@ -37,7 +37,8 @@ export class PlayerState {
 
     const params = new URLSearchParams();
     const f = this.searchFilters();
-    params.set('page', this.currentPage().toString());
+    const pageToFetch = append ? this.currentPage() + 1 : 1;
+    params.set('page', pageToFetch.toString());
     params.set('limit', '20');
     if (f.name) params.set('name', f.name);
     if (f.team) params.set('team', f.team);
@@ -73,7 +74,6 @@ export class PlayerState {
 
   loadMore(event: any) {
     if (this.hasMorePages()) {
-      this.currentPage.update((p) => p + 1);
       this.loadPlayers(true, event);
     } else {
       event.target.complete();

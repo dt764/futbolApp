@@ -9,13 +9,22 @@ import { Geolocation } from '@capacitor/geolocation';
 import { PlayerState } from '../services/player.state';
 import { GeoLocation } from '../models/player.models';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
+import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
+
+function positiveNum(v: string): boolean {
+  return v !== '' && !isNaN(Number(v)) && Number(v) > 0;
+}
+
+function validCoord(v: string): boolean {
+  return v !== '' && !isNaN(Number(v));
+}
 
 @Component({
   selector: 'app-player-edit',
   templateUrl: 'player-edit.page.html',
   styleUrls: ['player-edit.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent, AdminBadgeComponent],
 })
 export class PlayerEditPage implements OnInit {
   private state = inject(PlayerState);
@@ -43,8 +52,44 @@ export class PlayerEditPage implements OnInit {
   private pendingPhotoData: string | null = null;
   loading = true;
   submitting = false;
+  loadingLocation = false;
   error = '';
   success = false;
+
+  nameError = '';
+  heightError = '';
+  weightError = '';
+  latError = '';
+  lngError = '';
+
+  private clearErrors() {
+    this.error = '';
+    this.nameError = '';
+    this.heightError = '';
+    this.weightError = '';
+    this.latError = '';
+    this.lngError = '';
+  }
+
+  validateField(field: string) {
+    switch (field) {
+      case 'name':
+        this.nameError = !this.form.name.trim() ? 'El nombre es obligatorio' : '';
+        break;
+      case 'height':
+        this.heightError = this.form.height !== '' && !positiveNum(this.form.height) ? 'Debe ser un número positivo' : '';
+        break;
+      case 'weight':
+        this.weightError = this.form.weight !== '' && !positiveNum(this.form.weight) ? 'Debe ser un número positivo' : '';
+        break;
+      case 'lat':
+        this.latError = (this.form.location && !validCoord(String(this.form.location.lat))) ? 'Latitud no válida' : '';
+        break;
+      case 'lng':
+        this.lngError = (this.form.location && !validCoord(String(this.form.location.lng))) ? 'Longitud no válida' : '';
+        break;
+    }
+  }
 
   ngOnInit() {
     this.playerId = this.route.snapshot.paramMap.get('id')!;
@@ -136,6 +181,7 @@ export class PlayerEditPage implements OnInit {
   }
 
   async useCurrentLocation() {
+    this.loadingLocation = true;
     try {
       const pos = await Geolocation.getCurrentPosition();
       this.form.location = {
@@ -143,6 +189,7 @@ export class PlayerEditPage implements OnInit {
         lng: pos.coords.longitude,
       };
     } catch {}
+    this.loadingLocation = false;
   }
 
   clearLocation() {
@@ -159,7 +206,16 @@ export class PlayerEditPage implements OnInit {
   }
 
   async submit() {
-    if (!this.form.name.trim()) return;
+    this.clearErrors();
+
+    this.nameError = !this.form.name.trim() ? 'El nombre es obligatorio' : '';
+    this.heightError = this.form.height !== '' && !positiveNum(this.form.height) ? 'Debe ser un número positivo' : '';
+    this.weightError = this.form.weight !== '' && !positiveNum(this.form.weight) ? 'Debe ser un número positivo' : '';
+    if (this.form.location) {
+      this.latError = !validCoord(String(this.form.location.lat)) ? 'Latitud no válida' : '';
+      this.lngError = !validCoord(String(this.form.location.lng)) ? 'Longitud no válida' : '';
+    }
+    if (this.nameError || this.heightError || this.weightError || this.latError || this.lngError) return;
 
     this.submitting = true;
     this.error = '';
@@ -180,8 +236,8 @@ export class PlayerEditPage implements OnInit {
     if (this.form.nationality.trim()) body['nationality'] = this.form.nationality.trim();
     if (this.form.position.trim()) body['position'] = this.form.position.trim();
     if (this.form.birthDate) body['birthDate'] = this.form.birthDate;
-    if (this.form.height.trim()) body['height'] = this.form.height.trim();
-    if (this.form.weight.trim()) body['weight'] = this.form.weight.trim();
+    if (this.form.height != null && String(this.form.height).trim()) body['height'] = String(this.form.height).trim();
+    if (this.form.weight != null && String(this.form.weight).trim()) body['weight'] = String(this.form.weight).trim();
     if (this.form.team.trim()) body['team'] = this.form.team.trim();
     if (this.form.league.trim()) body['league'] = this.form.league.trim();
     if (this.form.photo) body['photo'] = this.form.photo;

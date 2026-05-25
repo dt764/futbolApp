@@ -63,4 +63,18 @@ const me = async (req, res) => {
   res.json({ user: req.user });
 };
 
-module.exports = { login, me };
+const updateMe = async (req, res) => {
+  const { displayName } = req.body;
+
+  if (!displayName || typeof displayName !== 'string' || !displayName.trim()) {
+    return res.status(400).json({ error: 'displayName es requerido' });
+  }
+
+  const user = req.user;
+  user.displayName = displayName.trim();
+  await user.save();
+
+  res.json({ user });
+};
+
+module.exports = { login, me, updateMe };

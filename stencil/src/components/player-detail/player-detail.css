@@ -171,6 +171,13 @@ ion-card-title {
   color: #fff !important;
 }
 
+.author-display {
+  margin: 12px 0;
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  font-weight: 600;
+  color: #fff;
+}
+
 .player-detail ion-card ion-item ion-input,
 .player-detail ion-card ion-item ion-textarea {
   --color: #fff;
@@ -232,4 +239,16 @@ ion-card-title {
 
 .star-filled {
   color: var(--ion-color-warning, #ffc409);
+}
+
+.item-has-error {
+  --border-color: var(--ion-color-danger) !important;
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  margin: 4px 0 8px 16px;
 }

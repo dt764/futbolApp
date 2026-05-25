@@ -36,6 +36,7 @@ export declare class PlayerDetail {
     loading: boolean;
     commentLoading: boolean;
     error: string;
+    loggedInUser?: string;
     addComment: EventEmitter<{
         author: string;
         text: string;
@@ -57,6 +58,8 @@ export declare class PlayerDetail {
         lng: number;
     } | null;
     locationLoading: boolean;
+    commentTextError: string;
+    commentAuthorError: string;
     get averageRating(): number;
     get playerName(): string;
     stars(rating: number): number[];

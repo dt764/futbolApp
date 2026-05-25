@@ -16,6 +16,7 @@ export class AuthHeaderComponent {
   private router = inject(Router);
 
   get isLoggedIn() { return this.auth.isLoggedIn(); }
+  get isAdmin() { return this.auth.appUser()?.role === 'admin'; }
   get appUser() { return this.auth.appUser(); }
 
   async logout() {

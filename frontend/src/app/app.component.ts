@@ -15,6 +15,7 @@ export class AppComponent {
   private auth = inject(AuthService);
 
   get isLoggedIn() { return this.auth.isLoggedIn(); }
+  get isAdmin() { return this.auth.appUser()?.role === 'admin'; }
 
   menuPages = [
     { title: 'Inicio', url: '/home', icon: 'home-outline' },

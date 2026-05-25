@@ -7,13 +7,14 @@ import { PlayerState } from '../services/player.state';
 import { Player } from '../models/player.models';
 import { AuthService } from '../services/auth.service';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
+import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
 
 @Component({
   selector: 'app-players',
   templateUrl: 'players.page.html',
   styleUrls: ['players.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent, AdminBadgeComponent],
 })
 export class PlayersPage {
   private state = inject(PlayerState);

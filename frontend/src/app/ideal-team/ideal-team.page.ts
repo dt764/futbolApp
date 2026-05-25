@@ -6,13 +6,14 @@ import { RouterModule } from '@angular/router';
 import { ApiService } from '../services/api.service';
 import { IdealTeamPlayer, IdealTeamResponse } from '../models/player.models';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
+import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
 
 @Component({
   selector: 'app-ideal-team',
   templateUrl: 'ideal-team.page.html',
   styleUrls: ['ideal-team.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent, AdminBadgeComponent],
 })
 export class IdealTeamPage {
   private api = inject(ApiService);
@@ -63,5 +64,14 @@ export class IdealTeamPage {
       const orderB = this.positionOrder[b.position] ?? 99;
       return orderA - orderB;
     });
+  }
+
+  positionAbbr(pos: string): string {
+    const lower = pos.toLowerCase();
+    if (lower.includes('portero') || lower.includes('goal')) return 'POR';
+    if (lower.includes('defensa') || lower.includes('def') || lower.includes('back')) return 'DEF';
+    if (lower.includes('centrocampista') || lower.includes('medio') || lower.includes('mid')) return 'MED';
+    if (lower.includes('delantero') || lower.includes('del') || lower.includes('forward')) return 'DEL';
+    return pos.substring(0, 3).toUpperCase();
   }
 }

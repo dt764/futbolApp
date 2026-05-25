@@ -5,13 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
+import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
+import { validateEmail } from '../validators';
 
 @Component({
   selector: 'app-login',
   templateUrl: 'login.page.html',
   styleUrls: ['login.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent],
+  imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent, AdminBadgeComponent],
 })
 export class LoginPage {
   private auth = inject(AuthService);
@@ -19,12 +21,30 @@ export class LoginPage {
   email = '';
   password = '';
   error = '';
+  loading = false;
+  emailError = '';
+  passwordError = '';
+  showPassword = false;
+
+  validateField() {
+    this.emailError = this.email ? (validateEmail(this.email) || '') : '';
+    this.passwordError = !this.password.trim() ? 'La contraseña es obligatoria' : '';
+  }
 
   login() {
     this.error = '';
+    this.emailError = validateEmail(this.email) || '';
+    this.passwordError = !this.password.trim() ? 'La contraseña es obligatoria' : '';
+    if (this.emailError || this.passwordError) return;
+
+    this.loading = true;
     this.auth.login(this.email, this.password).subscribe({
-      next: () => this.router.navigateByUrl('/home'),
+      next: () => {
+        this.loading = false;
+        this.router.navigateByUrl('/home');
+      },
       error: (err) => {
+        this.loading = false;
         this.error = err.message || 'Error al iniciar sesión';
       },
     });

@@ -8,6 +8,7 @@ import { PlayerState } from '../services/player.state';
 import { ApiService } from '../services/api.service';
 import { Comment, CommentsResponse } from '../models/comment.models';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
+import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
 
 @Component({
   selector: 'app-player-detail',
@@ -15,7 +16,7 @@ import { AuthHeaderComponent } from '../auth-header/auth-header.component';
   styleUrls: ['player-detail.page.scss'],
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [IonicModule, CommonModule, RouterModule, AuthHeaderComponent],
+  imports: [IonicModule, CommonModule, RouterModule, AuthHeaderComponent, AdminBadgeComponent],
 })
 export class PlayerDetailPage implements OnInit {
   private api = inject(ApiService);

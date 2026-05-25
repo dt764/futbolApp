@@ -37,6 +37,7 @@ export class PlayerDetail {
   @Prop() loading = false;
   @Prop() commentLoading = false;
   @Prop() error = '';
+  @Prop() loggedInUser?: string;
 
   @Event() addComment: EventEmitter<{
     author: string;
@@ -54,6 +55,8 @@ export class PlayerDetail {
   @State() hoverRating = 0;
   @State() commentLocation: { lat: number; lng: number } | null = null;
   @State() locationLoading = false;
+  @State() commentTextError = '';
+  @State() commentAuthorError = '';
 
   get averageRating(): number {
     if (this.comments.length === 0) return 0;
@@ -99,9 +102,25 @@ export class PlayerDetail {
 
   handleSubmit(e: Event) {
     e.preventDefault();
-    const author = this.commentAuthor.trim();
+    this.commentTextError = '';
+    this.commentAuthorError = '';
+
+    const author = (this.loggedInUser || this.commentAuthor).trim();
     const text = this.commentText.trim();
-    if (!author || !text) return;
+    let valid = true;
+
+    if (!author) {
+      this.commentAuthorError = 'El nombre es obligatorio';
+      valid = false;
+    }
+    if (!text) {
+      this.commentTextError = 'El comentario no puede estar vacío';
+      valid = false;
+    } else if (text.length < 3) {
+      this.commentTextError = 'El comentario debe tener al menos 3 caracteres';
+      valid = false;
+    }
+    if (!valid) return;
 
     this.addComment.emit({
       author,
@@ -112,6 +131,8 @@ export class PlayerDetail {
 
     this.commentText = '';
     this.commentRating = 5;
+    this.commentTextError = '';
+    this.commentAuthorError = '';
   }
 
   handleDelete(commentId: string) {
@@ -221,26 +242,45 @@ export class PlayerDetail {
           </ion-card-header>
           <ion-card-content>
             <form onSubmit={(e) => this.handleSubmit(e)}>
-              <ion-item>
-                <ion-input
-                  label="Tu nombre"
-                  labelPlacement="floating"
-                  value={this.commentAuthor}
-                  onIonInput={(e: any) => (this.commentAuthor = e.target.value)}
-                  required
-                />
-              </ion-item>
-              <ion-item>
+              {this.loggedInUser ? (
+                <ion-item>
+                  <ion-label>Tu nombre</ion-label>
+                  <p class="author-display">{this.loggedInUser}</p>
+                </ion-item>
+              ) : (
+                <ion-item class={{ 'item-has-error': !!this.commentAuthorError }}>
+                  <ion-input
+                    label="Tu nombre"
+                    labelPlacement="floating"
+                    value={this.commentAuthor}
+                    onIonInput={(e: any) => {
+                      this.commentAuthor = e.target.value;
+                      this.commentAuthorError = '';
+                    }}
+                    required
+                  />
+                </ion-item>
+              )}
+              {!this.loggedInUser && this.commentAuthorError && (
+                <ion-note color="danger" class="field-error">{this.commentAuthorError}</ion-note>
+              )}
+              <ion-item class={{ 'item-has-error': !!this.commentTextError }}>
                 <ion-textarea
                   label="Comentario"
                   labelPlacement="floating"
                   value={this.commentText}
-                  onIonInput={(e: any) => (this.commentText = e.target.value)}
+                  onIonInput={(e: any) => {
+                    this.commentText = e.target.value;
+                    this.commentTextError = '';
+                  }}
                   rows={3}
                   maxlength={1000}
                   required
                 />
               </ion-item>
+              {this.commentTextError && (
+                <ion-note color="danger" class="field-error">{this.commentTextError}</ion-note>
+              )}
               <ion-item>
                 <ion-label>Valoración</ion-label>
                 <div class="rating-input">
@@ -287,7 +327,7 @@ export class PlayerDetail {
                 type="submit"
                 expand="block"
                 class="ion-margin-top"
-                disabled={!this.commentAuthor.trim() || !this.commentText.trim() || this.commentLoading}
+                disabled={(!this.loggedInUser && !this.commentAuthor.trim()) || !this.commentText.trim() || this.commentLoading}
               >
                 {this.commentLoading && <ion-spinner slot="start" />}
                 Publicar comentario
