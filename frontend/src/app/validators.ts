@@ -36,11 +36,14 @@ export function sanitizeError(err: unknown): string {
     if (typeof e === 'string') return e;
     if (!e || typeof e !== 'object') return null;
     const obj = e as Record<string, unknown>;
-    if (typeof obj.error === 'object' && obj.error && typeof (obj.error as Record<string, unknown>).error === 'string')
-      return (obj.error as Record<string, unknown>).error as string;
-    if (typeof obj.error === 'string') return obj.error;
-    if (obj.message && typeof obj.message === 'string') return obj.message;
-    if (obj.code && typeof obj.code === 'string') return obj.code;
+    const objErr = obj['error'];
+    if (typeof objErr === 'object' && objErr && typeof (objErr as Record<string, unknown>)['error'] === 'string')
+      return (objErr as Record<string, unknown>)['error'] as string;
+    if (typeof objErr === 'string') return objErr;
+    const msg = obj['message'];
+    if (msg && typeof msg === 'string') return msg;
+    const code = obj['code'];
+    if (code && typeof code === 'string') return code;
     return null;
   };
 

@@ -54,7 +54,7 @@ describe('BackendFactory', () => {
   });
   it('TRWM', () => expect(factory.getStrategy('trwm').getBaseUrl()).to.equal('http://localhost:3000'));
   it('DWSC', () => expect(factory.getStrategy('dwsc').getBaseUrl()).to.equal('http://localhost:8080'));
-  it('unknown', () => expect(() => factory.getStrategy('x')).to.throw());
+  it('unknown', () => expect(() => factory.getStrategy('x' as any)).to.throw());
   it('all', () => expect(factory.getAll()).to.have.length(2));
 });
 

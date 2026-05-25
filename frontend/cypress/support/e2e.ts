@@ -1,6 +1,6 @@
 Cypress.config('includeShadowDom', true);
 
-Cypress.Commands.add('login', (email: string, password: string) => {
+(Cypress.Commands as any).add('login', (email: string, password: string) => {
   cy.session([email, password], () => {
     cy.visit('/login');
     cy.get('ion-input[name="email"]').type(email);
@@ -10,6 +10,6 @@ Cypress.Commands.add('login', (email: string, password: string) => {
   });
 });
 
-Cypress.Commands.add('typeInIonInput', (label: string, value: string) => {
+(Cypress.Commands as any).add('typeInIonInput', (label: string, value: string) => {
   cy.contains('ion-item', label).find('ion-input').click({ force: true }).find('input').type(value);
 });
