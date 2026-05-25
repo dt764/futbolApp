@@ -5,22 +5,22 @@ describe('Register', () => {
 
   it('should display the register form', () => {
     cy.contains('Registrarse');
-    cy.get('input[name="email"]').should('exist');
-    cy.get('input[name="password"]').should('exist');
-    cy.get('input[name="confirmPassword"]').should('exist');
-    cy.get('button[type="submit"]').should('contain', 'Crear cuenta');
+    cy.get('ion-input[name="email"]').should('exist');
+    cy.get('ion-input[name="password"]').should('exist');
+    cy.get('ion-input[name="confirmPassword"]').should('exist');
+    cy.contains('ion-button.submit-btn', 'Crear cuenta').should('be.visible');
   });
 
   it('should show error when passwords do not match', () => {
-    cy.get('input[name="email"]').type('test@test.com');
-    cy.get('input[name="password"]').type('password123');
-    cy.get('input[name="confirmPassword"]').type('different');
-    cy.get('button[type="submit"]').click();
+    cy.get('ion-input[name="email"]').type('test@test.com');
+    cy.get('ion-input[name="password"]').type('password123');
+    cy.get('ion-input[name="confirmPassword"]').type('different');
+    cy.get('ion-button.submit-btn').click();
     cy.contains('Las contraseñas no coinciden');
   });
 
   it('should navigate to login page', () => {
-    cy.contains('Iniciar sesión').click();
+    cy.contains('.switch-btn', 'Inicia sesión').click();
     cy.url().should('include', '/login');
   });
 });

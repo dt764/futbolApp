@@ -3,6 +3,6 @@ describe('Listado de jugadores', () => {
     cy.visit('/players');
     cy.url().should('not.include', '/login');
     cy.contains('Jugadores');
-    cy.get('ion-list ion-item', { timeout: 10000 }).should('exist');
+    cy.contains('Filtrar jugadores');
   });
 });

@@ -1,14 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
 describe('AuthGuard', () => {
   it('allows access when user is logged in', async () => {
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [
         AuthGuard,
-        { provide: AuthService, useValue: { isLoggedIn: true, ready: Promise.resolve() } },
+        provideRouter([]),
+        { provide: AuthService, useValue: { isLoggedIn: () => true, ready: Promise.resolve() } },
       ],
     });
 
@@ -18,9 +21,11 @@ describe('AuthGuard', () => {
 
   it('redirects to /login when user is not logged in', async () => {
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [
         AuthGuard,
-        { provide: AuthService, useValue: { isLoggedIn: false, ready: Promise.resolve() } },
+        provideRouter([]),
+        { provide: AuthService, useValue: { isLoggedIn: () => false, ready: Promise.resolve() } },
       ],
     });
 

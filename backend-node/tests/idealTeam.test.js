@@ -102,8 +102,8 @@ describe('POST /api/ideal-team', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.team.formation).toBe('4-3-3');
-    expect(res.body.team.startingXI).toHaveLength(1);
-    expect(res.body.team.coach).toBe('Entrenador X');
+    expect(res.body.team.players).toHaveLength(2);
+    expect(res.body.team.reasoning).toBe('Equipo equilibrado');
   });
 
   it('debería ignorar jugadores manuales (source: manual)', async () => {

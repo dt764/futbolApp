@@ -13,6 +13,7 @@ describe('PlayerEditPage', () => {
 
   it('should create', () => {
     const fixture = TestBed.createComponent(PlayerEditPage);
-    expect(fixture.componentInstance).toBeTruthy();
+    expect(fixture.componentInstance).to.exist;
+    fixture.destroy();
   });
 });
