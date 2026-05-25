@@ -1,16 +1,15 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BackendStrategy, BackendType } from './backend-strategy';
 import { TrwmBackendStrategy } from './trwm-backend.strategy';
 import { DwscBackendStrategy } from './dwsc-backend.strategy';
 
 @Injectable({ providedIn: 'root' })
 export class BackendFactory {
+  private trwm = inject(TrwmBackendStrategy);
+  private dwsc = inject(DwscBackendStrategy);
   private strategies = new Map<BackendType, BackendStrategy>();
 
-  constructor(
-    private trwm: TrwmBackendStrategy,
-    private dwsc: DwscBackendStrategy,
-  ) {
+  constructor() {
     this.strategies.set('trwm', this.trwm);
     this.strategies.set('dwsc', this.dwsc);
   }
