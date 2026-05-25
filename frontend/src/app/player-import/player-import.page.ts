@@ -8,6 +8,7 @@ import { ApiPlayer, ApiSearchResponse } from '../models/player.models';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
 import { forkJoin, catchError, of } from 'rxjs';
+import { sanitizeError } from '../validators';
 
 @Component({
   selector: 'app-player-import',
@@ -81,7 +82,7 @@ export class PlayerImportPage {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.message || 'Error al buscar en la API externa';
+        this.error = sanitizeError(err);
         this.loading = false;
       },
     });

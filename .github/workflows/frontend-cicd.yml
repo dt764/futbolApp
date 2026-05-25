@@ -61,11 +61,7 @@ jobs:
           component: true
           command: npm run test:ci
 
-      - name: 📊 Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: frontend/coverage/
+      # TODO: cobertura real requiere vite-plugin-istanbul (bloqueado por incompatibilidad ESM/CJS con Cypress)
 
       - name: Build
         run: npm run build -- --configuration production
@@ -76,7 +72,7 @@ jobs:
           browser: chrome
           working-directory: frontend
           start: npm run start
-          wait-on: 'http://localhost:4200'
+          wait-on: 'http://localhost:8100'
           command: npm run e2e:ci
 
       - name: 📸 Upload Cypress screenshots on failure

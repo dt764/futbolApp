@@ -7,6 +7,7 @@ import { ApiService } from '../services/api.service';
 import { IdealTeamPlayer, IdealTeamResponse } from '../models/player.models';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
+import { sanitizeError } from '../validators';
 
 @Component({
   selector: 'app-ideal-team',
@@ -51,7 +52,7 @@ export class IdealTeamPage {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.error || err.message || 'Error al generar el equipo ideal';
+        this.error = sanitizeError(err);
         this.loading = false;
       },
     });

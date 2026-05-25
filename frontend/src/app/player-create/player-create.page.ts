@@ -10,6 +10,7 @@ import { PlayerState } from '../services/player.state';
 import { GeoLocation } from '../models/player.models';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
+import { sanitizeError } from '../validators';
 
 function positiveNum(v: string): boolean {
   return v !== '' && !isNaN(Number(v)) && Number(v) > 0;
@@ -217,7 +218,7 @@ export class PlayerCreatePage {
       },
       error: (err) => {
         this.submitting = false;
-        this.error = err.error?.error || err.message || 'Error al crear el jugador';
+        this.error = sanitizeError(err);
       },
     });
   }

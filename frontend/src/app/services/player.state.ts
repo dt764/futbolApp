@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { ApiService } from './api.service';
 import { Player, PlayersResponse } from '../models/player.models';
+import { sanitizeError } from '../validators';
 
 @Injectable({ providedIn: 'root' })
 export class PlayerState {
@@ -61,7 +62,7 @@ export class PlayerState {
       },
       error: (err) => {
         if (requestId !== this.currentRequest) return;
-        this.listError.set(err.message || 'Error al cargar jugadores');
+        this.listError.set(sanitizeError(err));
         this.isLoading.set(false);
         if (event) event.target.complete();
       },

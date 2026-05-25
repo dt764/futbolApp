@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
-import { validateEmail, validatePasswordStrength } from '../validators';
+import { validateEmail, validatePasswordStrength, sanitizeError } from '../validators';
 
 @Component({
   selector: 'app-register',
@@ -90,7 +90,7 @@ export class RegisterPage {
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.message || 'Error al registrarse';
+        this.error = sanitizeError(err);
       },
     });
   }

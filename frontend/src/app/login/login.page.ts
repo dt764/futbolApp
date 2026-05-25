@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
-import { validateEmail } from '../validators';
+import { validateEmail, sanitizeError } from '../validators';
 
 @Component({
   selector: 'app-login',
@@ -45,7 +45,7 @@ export class LoginPage {
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.message || 'Error al iniciar sesión';
+        this.error = sanitizeError(err);
       },
     });
   }
