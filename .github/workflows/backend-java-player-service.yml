@@ -1,4 +1,4 @@
-name: ☕ Player Service
+name: Java Player Service
 
 on:
   workflow_dispatch:

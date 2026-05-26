@@ -1,4 +1,4 @@
-name: ☕ Gateway
+name: Java Gateway
 
 on:
   workflow_dispatch:

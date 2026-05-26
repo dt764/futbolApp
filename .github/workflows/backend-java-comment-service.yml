@@ -1,4 +1,4 @@
-name: ☕ Comment Service
+name: Java Comment Service
 
 on:
   workflow_dispatch:

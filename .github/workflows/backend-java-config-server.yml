@@ -1,4 +1,4 @@
-name: ☕ Config Server
+name: Java Config Server
 
 on:
   workflow_dispatch:
