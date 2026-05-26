@@ -125,10 +125,9 @@ jobs:
           service: ${{ env.SERVICE }}-develop
           region: ${{ env.REGION }}
           image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ steps.meta.outputs.version }}
-          flags: '--allow-unauthenticated --port=${{ env.PORT }}'
-          env_vars: |
-            CONFIG_SERVER_HOST=${{ steps.config.outputs.url }}
-            EUREKA_URI=${{ steps.registry.outputs.url }}/eureka/
+          flags: >
+            --allow-unauthenticated --port=${{ env.PORT }}
+            ${{ steps.config.outputs.url != '' && steps.registry.outputs.url != '' && format('--set-env-vars=CONFIG_SERVER_HOST={0},EUREKA_URI={1}/eureka/', steps.config.outputs.url, steps.registry.outputs.url) || '' }}
       - run: echo "Desplegado en ${{ steps.deploy.outputs.url }}"
 
   deploy-production:
@@ -189,10 +188,9 @@ jobs:
           service: ${{ env.SERVICE }}-production
           region: ${{ env.REGION }}
           image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ steps.meta.outputs.version }}
-          flags: '--allow-unauthenticated --port=${{ env.PORT }}'
-          env_vars: |
-            CONFIG_SERVER_HOST=${{ steps.config.outputs.url }}
-            EUREKA_URI=${{ steps.registry.outputs.url }}/eureka/
+          flags: >
+            --allow-unauthenticated --port=${{ env.PORT }}
+            ${{ steps.config.outputs.url != '' && steps.registry.outputs.url != '' && format('--set-env-vars=CONFIG_SERVER_HOST={0},EUREKA_URI={1}/eureka/', steps.config.outputs.url, steps.registry.outputs.url) || '' }}
       - run: echo "Desplegado en ${{ steps.deploy.outputs.url }}"
 
 
