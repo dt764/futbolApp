@@ -1,4 +1,4 @@
-name: Backend Java - Service Registry
+name: ☕ Service Registry
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ on:
 env:
   PROJECT_ID: computacionnube2026-dt764
   REGISTRY: europe-west1-docker.pkg.dev
-  REPO: ${{ env.SERVICE }}-repo
+  REPO: service-registry-repo
   REGION: europe-west1
   SERVICE: service-registry
   PORT: 8761

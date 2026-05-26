@@ -1,4 +1,4 @@
-name: Backend Java - Comment Service
+name: ☕ Comment Service
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ on:
 env:
   PROJECT_ID: computacionnube2026-dt764
   REGISTRY: europe-west1-docker.pkg.dev
-  REPO: ${{ env.SERVICE }}-repo
+  REPO: comment-service-repo
   REGION: europe-west1
   SERVICE: comment-service
   PORT: 8082

@@ -1,4 +1,4 @@
-name: Backend Java - Gateway
+name: ☕ Gateway
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ on:
 env:
   PROJECT_ID: computacionnube2026-dt764
   REGISTRY: europe-west1-docker.pkg.dev
-  REPO: ${{ env.SERVICE }}-repo
+  REPO: gateway-repo
   REGION: europe-west1
   SERVICE: gateway
   PORT: 8083

@@ -1,4 +1,4 @@
-name: Backend Java - Player Service
+name: ☕ Player Service
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ on:
 env:
   PROJECT_ID: computacionnube2026-dt764
   REGISTRY: europe-west1-docker.pkg.dev
-  REPO: ${{ env.SERVICE }}-repo
+  REPO: player-service-repo
   REGION: europe-west1
   SERVICE: player-service
   PORT: 8081
