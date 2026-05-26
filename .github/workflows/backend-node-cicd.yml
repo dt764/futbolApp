@@ -21,6 +21,9 @@ env:
 jobs:
   backend-node-ci:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
     defaults:
       run:
         working-directory: backend-node

@@ -23,6 +23,9 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
     defaults:
       run:
         working-directory: backend-java/config-server
