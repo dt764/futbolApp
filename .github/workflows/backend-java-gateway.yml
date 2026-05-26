@@ -91,7 +91,7 @@ jobs:
           context: ./backend-java/${{ env.SERVICE }}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ tags.docker-tag.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ steps.docker-tag.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/${{ env.SERVICE }}:${{ github.sha }}
 
   deploy-develop:
