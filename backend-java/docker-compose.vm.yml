@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Base de datos compartida interna (Opcional, pero recomendada)
+  mi-base-datos:
+    image: postgres:15-alpine
+    container_name: mi-base-datos
+    environment:
+      POSTGRES_USER: usuario_futbol
+      POSTGRES_PASSWORD: password_seguro123
+      POSTGRES_DB: db_sistema
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  config-server:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/config-server-repo/config-server:latest-develop
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    restart: unless-stopped
+
+  service-registry:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/service-registry-repo/service-registry:latest-develop
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    depends_on:
+      config-server:
+        condition: service_started
+    restart: unless-stopped
+
+  gateway:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/gateway-repo/gateway:latest-develop
+    container_name: gateway
+    ports:
+      - "8083:8083"
+    environment:
+      EUREKA_URI: http://service-registry:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      service-registry:
+        condition: service_started
+    restart: unless-stopped
+
+  player-service:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/player-service-repo/player-service:latest-develop
+    container_name: player-service
+    ports:
+      - "8081:8081"
+    environment:
+      CONFIG_SERVER_HOST: config-server # <-- CORREGIDO: Solo el nombre del contenedor
+      EUREKA_URI: http://service-registry:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://mi-base-datos:5432/db_sistema
+    depends_on:
+      config-server:
+        condition: service_started
+      service-registry:
+        condition: service_started
+      mi-base-datos:
+        condition: service_started
+    restart: unless-stopped
+
+  comment-service:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/comment-service-repo/comment-service:latest-develop
+    container_name: comment-service
+    ports:
+      - "8082:8082"
+    environment:
+      CONFIG_SERVER_HOST: config-server # <-- CORREGIDO: Solo el nombre del contenedor
+      EUREKA_URI: http://service-registry:8761/eureka/
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://mi-base-datos:5432/db_sistema
+    depends_on:
+      config-server:
+        condition: service_started
+      service-registry:
+        condition: service_started
+      mi-base-datos:
+        condition: service_started
+    restart: unless-stopped
