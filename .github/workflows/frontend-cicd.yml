@@ -61,8 +61,6 @@ jobs:
           component: true
           command: npm run test:ci
 
-      # TODO: cobertura real requiere vite-plugin-istanbul (bloqueado por incompatibilidad ESM/CJS con Cypress)
-
       - name: Build
         run: npm run build -- --configuration production
 
@@ -75,12 +73,37 @@ jobs:
           wait-on: 'http://localhost:8100'
           command: npm run e2e:ci
 
+      - name: Resumen de tests visuales
+        run: |
+          echo "## 📊 Informe de Frontend" >> $GITHUB_STEP_SUMMARY
+          echo "**Component tests:** Ejecutados con Cypress" >> $GITHUB_STEP_SUMMARY
+          echo "**E2E tests:** Ejecutados contra build local" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 Capturas y videos en los Artefactos:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`cypress-screenshots\` (solo si fallan)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`cypress-videos\` (solo si fallan)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`frontend-build\` (dist/)" >> $GITHUB_STEP_SUMMARY
+        shell: bash
+
       - name: 📸 Upload Cypress screenshots on failure
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots
           path: frontend/cypress/screenshots/
+
+      - name: 📹 Upload Cypress videos on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-videos
+          path: frontend/cypress/videos/
+
+      - name: 📦 Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist/
 
       - name: Build Docker image (Local check)
         run: docker build -t football-frontend .

@@ -1,0 +1,52 @@
+services:
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+
+  service-registry:
+    build: ./service-registry
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "8083:8083"
+    depends_on:
+      - service-registry
+      - config-server
+    environment:
+      EUREKA_URI: http://service-registry:8761/eureka/
+
+  player-service:
+    build: ./player-service
+    container_name: player-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - config-server
+      - service-registry
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      EUREKA_URI: http://service-registry:8761/eureka/
+      EUREKA_ENABLED: "true"
+
+  comment-service:
+    build: ./comment-service
+    container_name: comment-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - config-server
+      - service-registry
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      EUREKA_URI: http://service-registry:8761/eureka/
+      EUREKA_ENABLED: "true"

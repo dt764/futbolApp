@@ -5,6 +5,7 @@
     "start": "node ./bin/www",
     "start:dev": "nodemon ./bin/www",
     "test": "jest --setupFilesAfterEnv ./tests/setup.js --forceExit --detectOpenHandles",
+"test:coverage": "jest --setupFilesAfterEnv ./tests/setup.js --forceExit --detectOpenHandles --coverage --json --outputFile=jest-results.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

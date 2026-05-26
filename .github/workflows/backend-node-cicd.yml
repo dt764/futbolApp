@@ -62,11 +62,36 @@ jobs:
 
       # --------------------------------------------------
 
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npm run test:coverage
         env:
           NODE_ENV: test
           MONGO_URI_TEST: mongodb://localhost:27017/futbolapp-test
+
+      - name: Resumen de cobertura
+        run: |
+          echo "## 📊 Informe de Backend Node" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/lcov-report/index.html ]; then
+            COV=$(grep -oP '<span class="strong">\K[\d.]+(?=%)' coverage/lcov-report/index.html | head -1)
+            echo "**Cobertura:** ${COV}%" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "📁 [Descargar reportes](node-reports) en los Artefactos" >> $GITHUB_STEP_SUMMARY
+        shell: bash
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Backend Node Tests
+          path: jest-results.json
+          reporter: jest
+          working-directory: backend-node
+
+      - name: Subir reportes de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-reports
+          path: coverage/
 
       - name: Build Docker image (Local check)
         run: docker build -t football-api .
