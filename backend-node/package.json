@@ -5,7 +5,7 @@
     "start": "node ./bin/www",
     "start:dev": "nodemon ./bin/www",
     "test": "jest --setupFilesAfterEnv ./tests/setup.js --forceExit --detectOpenHandles",
-"test:coverage": "jest --setupFilesAfterEnv ./tests/setup.js --forceExit --detectOpenHandles --coverage --json --outputFile=jest-results.json",
+    "test:coverage": "jest --setupFilesAfterEnv ./tests/setup.js --forceExit --detectOpenHandles --coverage --reporters=default --reporters=jest-junit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -29,6 +29,10 @@
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.4.3"
   },
+  "jest-junit": {
+    "outputDirectory": "reports",
+    "outputName": "junit.xml"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.3.0",
@@ -36,6 +40,7 @@
     "eslint-plugin-security": "^4.0.0",
     "globals": "^17.6.0",
     "jest": "^29.6.1",
+    "jest-junit": "^17.0.0",
     "mongodb-memory-server": "^11.1.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.3",

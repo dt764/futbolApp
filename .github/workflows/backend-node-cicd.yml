@@ -83,8 +83,8 @@ jobs:
         if: success() || failure()
         with:
           name: Backend Node Tests
-          path: jest-results.json
-          reporter: jest
+          path: reports/junit.xml
+          reporter: java-junit
           working-directory: backend-node
 
       - name: Subir reportes de cobertura
