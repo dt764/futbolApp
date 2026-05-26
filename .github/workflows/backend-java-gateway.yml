@@ -122,7 +122,8 @@ jobs:
             --allow-unauthenticated --port=${{ env.PORT }}
             ${{ steps.registry.outputs.url && format('--set-env-vars=EUREKA_URI={0}/eureka/', steps.registry.outputs.url) || '' }}
       - run: echo "Desplegado en ${{ steps.deploy.outputs.url }}"
-    deploy-production:
+
+  deploy-production:
     runs-on: ubuntu-latest
     needs: ci
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
