@@ -27,9 +27,10 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           source: backend-java/docker-compose.vm.yml
           target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
-          strip_components: 2
+          strip_components: 1
+          overwrite: true
 
-      - name: Debug and deploy
+      - name: Deploy
         uses: appleboy/ssh-action@v1
         with:
           envs: REGISTRY,SERVICE
@@ -38,8 +39,11 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -e
-            echo "--- Buscando archivos yml ---"
-            find ~/proyecto-comun-2526-futbol -name "*.yml"
+            cd ~/proyecto-comun-2526-futbol
+            mv docker-compose.vm.yml docker-compose.yml
+            gcloud auth configure-docker $REGISTRY --quiet
+            docker compose pull
+            docker compose up -d
 
   deploy-production:
     name: Deploy to VM (production)
@@ -56,9 +60,10 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           source: backend-java/docker-compose.vm.yml
           target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
-          strip_components: 2
+          strip_components: 1
+          overwrite: true
 
-      - name: Debug and deploy
+      - name: Deploy
         uses: appleboy/ssh-action@v1
         with:
           envs: REGISTRY,SERVICE
@@ -67,5 +72,8 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -e
-            echo "--- Buscando archivos yml ---"
-            find ~/proyecto-comun-2526-futbol -name "*.yml"
+            cd ~/proyecto-comun-2526-futbol
+            mv docker-compose.vm.yml docker-compose.yml
+            gcloud auth configure-docker $REGISTRY --quiet
+            docker compose pull
+            docker compose up -d
