@@ -1,0 +1,75 @@
+name: Deploy docker-compose to VM
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+
+env:
+  REGISTRY: europe-west1-docker.pkg.dev
+  SERVICE: futbol-stack
+
+jobs:
+  deploy-develop:
+    name: Deploy to VM (develop)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose to VM (develop)
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VM_HOST_DEVELOP }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: backend-java/docker-compose.vm.yml
+          target: ~/proyecto-comun-2526-futbol/
+
+      - name: Run docker-compose on VM (develop)
+        uses: appleboy/ssh-action@v1
+        with:
+          envs: REGISTRY,SERVICE
+          host: ${{ secrets.VM_HOST_DEVELOP }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            gcloud auth configure-docker $REGISTRY --quiet || true
+            cd ~/proyecto-comun-2526-futbol
+            docker compose -f docker-compose.vm.yml pull || true
+            docker compose -f docker-compose.vm.yml up -d
+
+  deploy-production:
+    name: Deploy to VM (production)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose to VM (production)
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VM_HOST_PRODUCTION }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: backend-java/docker-compose.vm.yml
+          target: ~/proyecto-comun-2526-futbol/
+
+      - name: Run docker-compose on VM (production)
+        uses: appleboy/ssh-action@v1
+        with:
+          envs: REGISTRY,SERVICE
+          host: ${{ secrets.VM_HOST_PRODUCTION }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            gcloud auth configure-docker $REGISTRY --quiet || true
+            cd ~/proyecto-comun-2526-futbol
+            docker compose -f docker-compose.vm.yml pull || true
+            docker compose -f docker-compose.vm.yml up -d
