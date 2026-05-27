@@ -1,3 +1,4 @@
+# DEPLOYED_BY_CI - 2026
 services:
   mi-base-datos:
     image: postgres:15-alpine
