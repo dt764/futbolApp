@@ -18,6 +18,7 @@ jobs:
     if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
+
       - name: Copy docker-compose to VM
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -27,7 +28,8 @@ jobs:
           source: backend-java/docker-compose.vm.yml
           target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
           strip_components: 2
-      - name: Rename and deploy
+
+      - name: Debug and deploy
         uses: appleboy/ssh-action@v1
         with:
           envs: REGISTRY,SERVICE
@@ -36,11 +38,8 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -e
-            cd ~/proyecto-comun-2526-futbol
-            mv docker-compose.vm.yml docker-compose.yml
-            gcloud auth configure-docker $REGISTRY --quiet
-            docker compose pull
-            docker compose up -d
+            echo "--- Buscando archivos yml ---"
+            find ~/proyecto-comun-2526-futbol -name "*.yml"
 
   deploy-production:
     name: Deploy to VM (production)
@@ -48,6 +47,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
+
       - name: Copy docker-compose to VM
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -57,7 +57,8 @@ jobs:
           source: backend-java/docker-compose.vm.yml
           target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
           strip_components: 2
-      - name: Rename and deploy
+
+      - name: Debug and deploy
         uses: appleboy/ssh-action@v1
         with:
           envs: REGISTRY,SERVICE
@@ -66,8 +67,5 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -e
-            cd ~/proyecto-comun-2526-futbol
-            mv docker-compose.vm.yml docker-compose.yml
-            gcloud auth configure-docker $REGISTRY --quiet
-            docker compose pull
-            docker compose up -d
+            echo "--- Buscando archivos yml ---"
+            find ~/proyecto-comun-2526-futbol -name "*.yml"
