@@ -9,6 +9,11 @@ services:
       POSTGRES_DB: db_sistema
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario_futbol -d db_sistema"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   config-server:
@@ -56,11 +61,11 @@ services:
       API_FOOTBALL_KEY: ${API_FOOTBALL_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
+      mi-base-datos:
+        condition: service_healthy
       config-server:
         condition: service_started
       service-registry:
-        condition: service_started
-      mi-base-datos:
         condition: service_started
     restart: unless-stopped
 
@@ -77,10 +82,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-password_seguro123}
       FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64:-}
     depends_on:
+      mi-base-datos:
+        condition: service_healthy
       config-server:
         condition: service_started
       service-registry:
-        condition: service_started
-      mi-base-datos:
         condition: service_started
     restart: unless-stopped
