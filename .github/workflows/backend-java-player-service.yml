@@ -14,6 +14,11 @@ env:
   REPO: player-service-repo
   SERVICE: player-service
 
+# 🔒 Serializa los deploys al mismo VM para evitar colisiones entre workflows
+concurrency:
+  group: deploy-${{ github.ref_name }}-vm   # mismo grupo en todos los workflows que usen el mismo VM
+  cancel-in-progress: false                  # espera a que termine, no cancela
+
 jobs:
   build-and-push:
     name: 🏗️ Build & Push Image
@@ -112,7 +117,7 @@ jobs:
             cd ~/proyecto-comun-2526-futbol
             docker compose pull $SERVICE
             docker compose up -d --no-deps $SERVICE
-            docker image prune -f
+            docker image prune -f || true   # 🛡️ no falla si otro prune está corriendo
 
   deploy-production:
     name: 🚀 Deploy to VM (production)
@@ -133,4 +138,4 @@ jobs:
             cd ~/proyecto-comun-2526-futbol
             docker compose pull $SERVICE
             docker compose up -d --no-deps $SERVICE
-            docker image prune -f
+            docker image prune -f || true   # 🛡️ no falla si otro prune está corriendo
