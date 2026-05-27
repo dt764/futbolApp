@@ -1,3 +1,16 @@
+name: Deploy docker-compose to VM
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+      - develop
+
+env:
+  REGISTRY: europe-west1-docker.pkg.dev
+  SERVICE: futbol-stack
+
 jobs:
   deploy-develop:
     name: Deploy to VM (develop)
