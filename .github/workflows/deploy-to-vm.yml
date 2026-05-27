@@ -1,57 +1,60 @@
-name: Deploy docker-compose to VM
-
-on:
-  workflow_dispatch: {}
-  push:
-    branches:
-      - main
-      - develop
-
-env:
-  REGISTRY: europe-west1-docker.pkg.dev
-  SERVICE: futbol-stack
-
 jobs:
-  deploy:
-    name: Deploy to VM (${{ matrix.env }})
+  deploy-develop:
+    name: Deploy to VM (develop)
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    strategy:
-      matrix:
-        include:
-          - env: develop
-            branch: refs/heads/develop
-            host_secret: VM_HOST_DEVELOP
-          - env: production
-            branch: refs/heads/main
-            host_secret: VM_HOST_PRODUCTION
-
+    if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
     steps:
-      - name: Checkout
-        if: github.ref == matrix.branch
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Copy docker-compose to VM
-        if: github.ref == matrix.branch
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets[matrix.host_secret] }}
+          host: ${{ secrets.VM_HOST_DEVELOP }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           source: backend-java/docker-compose.vm.yml
-          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.yml
-
-      - name: Deploy
-        if: github.ref == matrix.branch
+          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
+          strip_components: 2
+      - name: Rename and deploy
         uses: appleboy/ssh-action@v1
         with:
           envs: REGISTRY,SERVICE
-          host: ${{ secrets[matrix.host_secret] }}
+          host: ${{ secrets.VM_HOST_DEVELOP }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -e
             cd ~/proyecto-comun-2526-futbol
+            mv docker-compose.vm.yml docker-compose.yml
+            gcloud auth configure-docker $REGISTRY --quiet
+            docker compose pull
+            docker compose up -d
+
+  deploy-production:
+    name: Deploy to VM (production)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy docker-compose to VM
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VM_HOST_PRODUCTION }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: backend-java/docker-compose.vm.yml
+          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
+          strip_components: 2
+      - name: Rename and deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          envs: REGISTRY,SERVICE
+          host: ${{ secrets.VM_HOST_PRODUCTION }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/proyecto-comun-2526-futbol
+            mv docker-compose.vm.yml docker-compose.yml
             gcloud auth configure-docker $REGISTRY --quiet
             docker compose pull
             docker compose up -d
