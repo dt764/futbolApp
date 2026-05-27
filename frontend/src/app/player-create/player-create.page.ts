@@ -80,8 +80,10 @@ export class PlayerCreatePage implements AfterViewInit, OnDestroy {
   private marker?: L.Marker;
 
   ngAfterViewInit() {
-    // We delay slightly to ensure the container is rendered if location is set via "Usar mi ubicación"
-    // or if the ng-container switches.
+    // If the form already contains a location (e.g. pre-filled), initialize the map.
+    if (this.form.location) {
+      this.initMap(this.form.location.lat, this.form.location.lng);
+    }
   }
 
   ngOnDestroy() {
