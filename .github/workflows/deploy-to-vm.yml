@@ -20,6 +20,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Ensure remote directory exists (develop)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST_DEVELOP }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            mkdir -p /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol
+
       - name: Copy docker-compose to VM (develop)
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -27,7 +37,18 @@ jobs:
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           source: backend-java/docker-compose.vm.yml
-          target: ~/proyecto-comun-2526-futbol/
+          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
+
+      - name: Verify file on remote (develop)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST_DEVELOP }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            ls -la /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol || true
+            test -f /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml && echo "OK: file exists" || (echo "MISSING: file not found" && exit 2)
 
       - name: Run docker-compose on VM (develop)
         uses: appleboy/ssh-action@v1
@@ -51,6 +72,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Ensure remote directory exists (production)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST_PRODUCTION }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            mkdir -p /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol
+
       - name: Copy docker-compose to VM (production)
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -58,7 +89,18 @@ jobs:
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           source: backend-java/docker-compose.vm.yml
-          target: ~/proyecto-comun-2526-futbol/
+          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/
+
+      - name: Verify file on remote (production)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST_PRODUCTION }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            ls -la /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol || true
+            test -f /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml && echo "OK: file exists" || (echo "MISSING: file not found" && exit 2)
 
       - name: Run docker-compose on VM (production)
         uses: appleboy/ssh-action@v1
