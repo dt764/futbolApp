@@ -1,7 +1,7 @@
 name: Deploy docker-compose to VM
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   push:
     branches:
       - main
@@ -12,142 +12,46 @@ env:
   SERVICE: futbol-stack
 
 jobs:
-  deploy-develop:
-    name: Deploy to VM (develop)
+  deploy:
+    name: Deploy to VM (${{ matrix.env }})
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        include:
+          - env: develop
+            branch: refs/heads/develop
+            host_secret: VM_HOST_DEVELOP
+          - env: production
+            branch: refs/heads/main
+            host_secret: VM_HOST_PRODUCTION
+
     steps:
       - name: Checkout
+        if: github.ref == matrix.branch
         uses: actions/checkout@v4
 
-      - name: Ensure remote directory exists (develop)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VM_HOST_DEVELOP }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            set -e
-            mkdir -p /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol
-
-      - name: Debug: list repo file before SCP (develop)
-        run: |
-          echo "Listing backend-java dir"
-          ls -la backend-java || true
-          echo "File size and head"
-          wc -c backend-java/docker-compose.vm.yml || true
-          head -n 5 backend-java/docker-compose.vm.yml || true
-
-      - name: Copy docker-compose to VM (develop)
+      - name: Copy docker-compose to VM
+        if: github.ref == matrix.branch
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.VM_HOST_DEVELOP }}
+          host: ${{ secrets[matrix.host_secret] }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           source: backend-java/docker-compose.vm.yml
-          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml
+          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.yml
 
-      - name: Verify file on remote (develop)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VM_HOST_DEVELOP }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            set -e
-            ls -la /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol || true
-            if test -f /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml; then
-              echo "OK: file exists"
-              echo "--- head ---"
-              head -n 10 /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml || true
-              echo "--- stat ---"
-              stat -c '%n %s %y' /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml || true
-            else
-              echo "MISSING: file not found"
-              ls -la /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol || true
-              exit 2
-            fi
-
-      - name: Run docker-compose on VM (develop)
+      - name: Deploy
+        if: github.ref == matrix.branch
         uses: appleboy/ssh-action@v1
         with:
           envs: REGISTRY,SERVICE
-          host: ${{ secrets.VM_HOST_DEVELOP }}
+          host: ${{ secrets[matrix.host_secret] }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -e
-            REMOTE_DIR=/home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol
-            gcloud auth configure-docker $REGISTRY --quiet || true
-            docker compose -f "$REMOTE_DIR/docker-compose.vm.yml" pull || true
-            docker compose -f "$REMOTE_DIR/docker-compose.vm.yml" up -d
-
-  deploy-production:
-    name: Deploy to VM (production)
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Ensure remote directory exists (production)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VM_HOST_PRODUCTION }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            set -e
-            mkdir -p /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol
-
-      - name: Debug: list repo file before SCP (production)
-        run: |
-          echo "Listing backend-java dir"
-          ls -la backend-java || true
-          echo "File size and head"
-          wc -c backend-java/docker-compose.vm.yml || true
-          head -n 5 backend-java/docker-compose.vm.yml || true
-
-      - name: Copy docker-compose to VM (production)
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.VM_HOST_PRODUCTION }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          source: backend-java/docker-compose.vm.yml
-          target: /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml
-
-      - name: Verify file on remote (production)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VM_HOST_PRODUCTION }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            set -e
-            ls -la /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol || true
-            if test -f /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml; then
-              echo "OK: file exists"
-              echo "--- head ---"
-              head -n 10 /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml || true
-              echo "--- stat ---"
-              stat -c '%n %s %y' /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol/docker-compose.vm.yml || true
-            else
-              echo "MISSING: file not found"
-              ls -la /home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol || true
-              exit 2
-            fi
-
-      - name: Run docker-compose on VM (production)
-        uses: appleboy/ssh-action@v1
-        with:
-          envs: REGISTRY,SERVICE
-          host: ${{ secrets.VM_HOST_PRODUCTION }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            set -e
-            REMOTE_DIR=/home/${{ secrets.VM_USERNAME }}/proyecto-comun-2526-futbol
-            gcloud auth configure-docker $REGISTRY --quiet || true
-            docker compose -f "$REMOTE_DIR/docker-compose.vm.yml" pull || true
-            docker compose -f "$REMOTE_DIR/docker-compose.vm.yml" up -d
+            cd ~/proyecto-comun-2526-futbol
+            gcloud auth configure-docker $REGISTRY --quiet
+            docker compose pull
+            docker compose up -d
