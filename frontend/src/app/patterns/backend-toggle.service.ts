@@ -28,6 +28,10 @@ export class BackendToggleService {
     localStorage.setItem(STORAGE_KEY, type);
   }
 
+  reset() {
+    this.set('trwm');
+  }
+
   private loadSaved(): BackendType {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'trwm' || saved === 'dwsc') return saved;

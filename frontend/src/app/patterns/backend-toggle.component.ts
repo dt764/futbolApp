@@ -9,7 +9,7 @@ import { BackendToggleService } from './backend-toggle.service';
     <div class="backend-toggle">
       <ion-segment
         [value]="service.current()"
-        (ionChange)="service.set($any($event).detail.value)"
+        (ionChange)="onChange($any($event).detail.value)"
       >
         <ion-segment-button *ngFor="let s of service.all" [value]="s.type">
           <ion-icon [name]="s.type === 'trwm' ? 'server-outline' : 'cloud-outline'" slot="start"></ion-icon>
@@ -21,12 +21,18 @@ import { BackendToggleService } from './backend-toggle.service';
   styles: [`
     .backend-toggle {
       padding: 4px 12px;
-      background: var(--ion-background-color, #fff);
-      border-bottom: 1px solid var(--ion-border-color, #e0e0e0);
+      background: transparent;
     }
     ion-segment {
       max-width: 300px;
       margin: 0 auto;
+    }
+    ion-segment-button {
+      --color: rgba(255, 255, 255, 0.6);
+      --color-checked: #fff;
+    }
+    ion-segment-button ion-label {
+      color: inherit;
     }
   `],
   standalone: true,
@@ -34,4 +40,11 @@ import { BackendToggleService } from './backend-toggle.service';
 })
 export class BackendToggleComponent {
   protected service = inject(BackendToggleService);
+
+  onChange(value: string) {
+    if (value === 'trwm' || value === 'dwsc') {
+      this.service.set(value);
+      location.reload();
+    }
+  }
 }

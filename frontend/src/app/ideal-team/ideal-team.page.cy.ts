@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { IonicModule } from '@ionic/angular';
+import { provideRouter } from '@angular/router';
 import { IdealTeamPage } from './ideal-team.page';
 
 describe('IdealTeamPage', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [IdealTeamPage, IonicModule.forRoot(), HttpClientTestingModule],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 

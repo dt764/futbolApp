@@ -1,4 +1,21 @@
-import { Component, Prop, State, Event, EventEmitter, h } from '@stencil/core';
+import { Component, Prop, Element, State, Event, EventEmitter, h, Watch } from '@stencil/core';
+import * as L from 'leaflet';
+
+// Fix for Leaflet marker icons
+const iconRetinaUrl = 'assets/leaflet/marker-icon-2x.png';
+const iconUrl = 'assets/leaflet/marker-icon.png';
+const shadowUrl = 'assets/leaflet/marker-shadow.png';
+const iconDefault = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = iconDefault;
 
 export interface Player {
   _id: string;
@@ -31,6 +48,7 @@ export interface Comment {
   shadow: false,
 })
 export class PlayerDetail {
+  @Element() el: HTMLElement;
   @Prop() player?: Player | null;
   @Prop() comments: Comment[] = [];
   @Prop() isAdmin = false;
@@ -57,6 +75,47 @@ export class PlayerDetail {
   @State() locationLoading = false;
   @State() commentTextError = '';
   @State() commentAuthorError = '';
+
+  private map?: L.Map;
+
+  @Watch('player')
+  handlePlayerChange() {
+    this.initMap();
+  }
+
+  componentDidLoad() {
+    this.initMap();
+  }
+
+  private initMap() {
+    const p = this.player;
+    if (!p || !this.hasValidLocation(p.location)) {
+      if (this.map) {
+        this.map.remove();
+        this.map = undefined;
+      }
+      return;
+    }
+
+    setTimeout(() => {
+      const mapContainer = this.el.querySelector('#map-detail') as HTMLElement;
+      if (!mapContainer) return;
+
+      if (this.map) {
+        this.map.remove();
+      }
+
+      this.map = L.map(mapContainer).setView([p.location!.lat, p.location!.lng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(this.map);
+
+      L.marker([p.location!.lat, p.location!.lng]).addTo(this.map)
+        .bindPopup(this.playerName)
+        .openPopup();
+    }, 200);
+  }
 
   get averageRating(): number {
     if (this.comments.length === 0) return 0;
@@ -220,11 +279,13 @@ export class PlayerDetail {
             </ion-card-header>
             <ion-card-content>
               {p.location?.address && <p>{p.location.address}</p>}
+              <div id="map-detail" class="map-detail"></div>
               <ion-button
                 fill="clear"
                 color="tertiary"
                 href={this.mapsUrl(p.location!.lat, p.location!.lng)}
                 target="_blank"
+                class="ion-margin-top"
               >
                 <ion-icon name="map-outline" slot="start" />
                 Abrir en Google Maps

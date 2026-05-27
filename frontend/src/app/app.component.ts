@@ -1,21 +1,22 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
+import { BackendToggleComponent } from './patterns/backend-toggle.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   standalone: true,
-  imports: [IonicModule, RouterModule, CommonModule],
+  imports: [IonicModule, RouterModule, CommonModule, BackendToggleComponent],
 })
 export class AppComponent {
   private auth = inject(AuthService);
 
-  get isLoggedIn() { return this.auth.isLoggedIn(); }
-  get isAdmin() { return this.auth.appUser()?.role === 'admin'; }
+  readonly isLoggedIn = this.auth.isLoggedIn;
+  readonly isAdmin = computed(() => this.auth.appUser()?.role === 'admin');
 
   menuPages = [
     { title: 'Inicio', url: '/home', icon: 'home-outline' },

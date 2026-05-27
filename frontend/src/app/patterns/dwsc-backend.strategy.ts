@@ -8,6 +8,6 @@ export class DwscBackendStrategy implements BackendStrategy {
   readonly label = 'DWSC';
 
   getBaseUrl(): string {
-    return environment.apiUrl ?? 'http://localhost:8083';
+    return environment.dwscApiUrl;
   }
 }

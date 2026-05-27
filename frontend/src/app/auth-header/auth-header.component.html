@@ -1,19 +1,15 @@
-<ng-container *ngIf="!isLoggedIn; else loggedIn">
-  <ion-button routerLink="/login">Iniciar sesión</ion-button>
-  <ion-button routerLink="/register" color="primary" fill="solid">Registro</ion-button>
-</ng-container>
-<ng-template #loggedIn>
+<div [hidden]="!isLoggedIn()">
   <ion-button id="user-menu-trigger">
     <ion-icon name="person-circle-outline" slot="icon-only" class="user-icon"></ion-icon>
   </ion-button>
-  <ion-popover trigger="user-menu-trigger" side="bottom" alignment="end">
+  <ion-popover #userPopover trigger="user-menu-trigger" side="bottom" alignment="end">
     <ng-template>
       <ion-content>
         <ion-list>
           <ion-item lines="none">
             <ion-label>
-              <h3>{{ appUser?.displayName || appUser?.email }}</h3>
-              <p>{{ appUser?.email }}</p>
+              <h3>{{ appUser()?.displayName || appUser()?.email }}</h3>
+              <p>{{ appUser()?.email }}</p>
             </ion-label>
           </ion-item>
           <ion-item button (click)="logout()" lines="none">
@@ -24,4 +20,8 @@
       </ion-content>
     </ng-template>
   </ion-popover>
-</ng-template>
+</div>
+<div [hidden]="isLoggedIn()">
+  <ion-button routerLink="/login">Iniciar sesión</ion-button>
+  <ion-button routerLink="/register" color="primary" fill="solid">Registro</ion-button>
+</div>

@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -17,7 +17,6 @@ import { validateEmail, validatePasswordStrength, sanitizeError } from '../valid
 })
 export class RegisterPage {
   private auth = inject(AuthService);
-  private router = inject(Router);
   email = '';
   password = '';
   confirmPassword = '';
@@ -86,7 +85,7 @@ export class RegisterPage {
     this.auth.register(this.email, this.password).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigateByUrl('/home');
+        window.location.href = '/home';
       },
       error: (err) => {
         this.loading = false;

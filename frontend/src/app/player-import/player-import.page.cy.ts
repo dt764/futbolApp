@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { IonicModule } from '@ionic/angular';
+import { provideRouter } from '@angular/router';
 import { PlayerImportPage } from './player-import.page';
 
 describe('PlayerImportPage', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [PlayerImportPage, IonicModule.forRoot(), HttpClientTestingModule],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 

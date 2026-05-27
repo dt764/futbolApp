@@ -6,3 +6,15 @@ management:
     web:
       exposure:
         include: health
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/futbolapp
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

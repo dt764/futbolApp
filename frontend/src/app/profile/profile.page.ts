@@ -3,7 +3,6 @@ import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
-import { BackendToggleService } from '../patterns/backend-toggle.service';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
 import { validatePasswordStrength, mapFirebaseError } from '../validators';
@@ -17,7 +16,6 @@ import { validatePasswordStrength, mapFirebaseError } from '../validators';
 })
 export class ProfilePage {
   protected auth = inject(AuthService);
-  protected toggleService = inject(BackendToggleService);
   ready = this.auth.ready;
 
   editing = false;

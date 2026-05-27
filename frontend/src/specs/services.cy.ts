@@ -15,6 +15,8 @@ import { Player } from '../app/models/player.models';
 import { environment } from '../environments/environment';
 
 const apiUrl = environment.apiUrl;
+const dwscApiUrl = environment.dwscApiUrl;
+const trwmApiUrl = environment.trwmApiUrl;
 
 // ─── Pure functions (no DI) ───────────────────────────────────────
 describe('validateEmail', () => {
@@ -44,7 +46,7 @@ describe('DwscBackendStrategy', () => {
   it('works', () => {
     const s = new DwscBackendStrategy();
     expect(s.type).to.equal('dwsc');
-    expect(s.getBaseUrl()).to.equal(apiUrl);
+    expect(s.getBaseUrl()).to.equal(dwscApiUrl);
   });
 });
 
@@ -55,8 +57,8 @@ describe('BackendFactory', () => {
     TestBed.configureTestingModule({ providers: [BackendFactory, TrwmBackendStrategy, DwscBackendStrategy] });
     factory = TestBed.inject(BackendFactory);
   });
-  it('TRWM', () => expect(factory.getStrategy('trwm').getBaseUrl()).to.equal(apiUrl));
-  it('DWSC', () => expect(factory.getStrategy('dwsc').getBaseUrl()).to.equal(apiUrl));
+  it('TRWM', () => expect(factory.getStrategy('trwm').getBaseUrl()).to.equal(trwmApiUrl));
+  it('DWSC', () => expect(factory.getStrategy('dwsc').getBaseUrl()).to.equal(dwscApiUrl));
   it('unknown', () => expect(() => factory.getStrategy('x' as any)).to.throw());
   it('all', () => expect(factory.getAll()).to.have.length(2));
 });
@@ -130,7 +132,7 @@ describe('ApiService', () => {
   it('uses baseUrl from toggle', () => {
     toggle.set('dwsc');
     service.get('/health').subscribe();
-    httpCtrl.expectOne(`${apiUrl}/health`);
+    httpCtrl.expectOne(`${dwscApiUrl}/health`);
   });
   it('sends auth header with token', () => {
     service.get('/health', 'mytoken').subscribe();

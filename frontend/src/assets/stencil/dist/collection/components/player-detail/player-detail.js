@@ -1,4 +1,20 @@
 import { h } from "@stencil/core";
+import * as L from "leaflet";
+// Fix for Leaflet marker icons
+const iconRetinaUrl = 'assets/leaflet/marker-icon-2x.png';
+const iconUrl = 'assets/leaflet/marker-icon.png';
+const shadowUrl = 'assets/leaflet/marker-shadow.png';
+const iconDefault = L.icon({
+    iconRetinaUrl,
+    iconUrl,
+    shadowUrl,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    tooltipAnchor: [16, -28],
+    shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = iconDefault;
 export class PlayerDetail {
     constructor() {
         this.comments = [];
@@ -14,6 +30,37 @@ export class PlayerDetail {
         this.locationLoading = false;
         this.commentTextError = '';
         this.commentAuthorError = '';
+    }
+    handlePlayerChange() {
+        this.initMap();
+    }
+    componentDidLoad() {
+        this.initMap();
+    }
+    initMap() {
+        const p = this.player;
+        if (!p || !this.hasValidLocation(p.location)) {
+            if (this.map) {
+                this.map.remove();
+                this.map = undefined;
+            }
+            return;
+        }
+        setTimeout(() => {
+            const mapContainer = this.el.querySelector('#map-detail');
+            if (!mapContainer)
+                return;
+            if (this.map) {
+                this.map.remove();
+            }
+            this.map = L.map(mapContainer).setView([p.location.lat, p.location.lng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+            }).addTo(this.map);
+            L.marker([p.location.lat, p.location.lng]).addTo(this.map)
+                .bindPopup(this.playerName)
+                .openPopup();
+        }, 200);
     }
     get averageRating() {
         if (this.comments.length === 0)
@@ -95,7 +142,7 @@ export class PlayerDetail {
         }
         if (!p)
             return null;
-        return (h("div", { class: "player-detail" }, h("div", { class: "player-header" }, h("ion-avatar", { class: "player-photo" }, p.photo ? (h("img", { src: p.photo, alt: p.name })) : (h("div", { class: "avatar-placeholder-lg" }, p.name.charAt(0)))), h("div", { class: "player-basic" }, h("h1", null, this.playerName), p.position && h("p", { class: "position" }, p.position), (p.team || p.league) && (h("p", { class: "team-league" }, p.team, p.team && p.league && ' · ', p.league)), p.nationality && h("p", { class: "nationality" }, p.nationality), (p.birthDate || p.height || p.weight) && (h("div", { class: "player-physical" }, p.birthDate && (h("span", { class: "physical-item" }, h("ion-icon", { name: "calendar-outline" }), " ", p.birthDate)), p.height && (h("span", { class: "physical-item" }, h("ion-icon", { name: "resize-outline" }), " ", p.height, " cm")), p.weight && (h("span", { class: "physical-item" }, h("ion-icon", { name: "fitness-outline" }), " ", p.weight, " kg")))), this.isAdmin && (h("div", { class: "admin-buttons" }, h("ion-button", { expand: "block", fill: "solid", color: "tertiary", onClick: () => this.editPlayer.emit() }, h("ion-icon", { name: "create-outline", slot: "start" }), "Editar"), h("ion-button", { expand: "block", fill: "solid", color: "danger", onClick: () => this.deletePlayer.emit() }, h("ion-icon", { name: "trash-outline", slot: "start" }), "Eliminar"))))), this.hasValidLocation(p.location) && (h("ion-card", null, h("ion-card-header", null, h("ion-card-title", null, "Ubicaci\u00F3n")), h("ion-card-content", null, ((_a = p.location) === null || _a === void 0 ? void 0 : _a.address) && h("p", null, p.location.address), h("ion-button", { fill: "clear", color: "tertiary", href: this.mapsUrl(p.location.lat, p.location.lng), target: "_blank" }, h("ion-icon", { name: "map-outline", slot: "start" }), "Abrir en Google Maps")))), h("div", { class: "comments-wrapper" }, h("ion-card", null, h("ion-card-header", null, h("ion-card-title", null, "A\u00F1adir comentario")), h("ion-card-content", null, h("form", { onSubmit: (e) => this.handleSubmit(e) }, this.loggedInUser ? (h("ion-item", null, h("ion-label", null, "Tu nombre"), h("p", { class: "author-display" }, this.loggedInUser))) : (h("ion-item", { class: { 'item-has-error': !!this.commentAuthorError } }, h("ion-input", { label: "Tu nombre", labelPlacement: "floating", value: this.commentAuthor, onIonInput: (e) => {
+        return (h("div", { class: "player-detail" }, h("div", { class: "player-header" }, h("ion-avatar", { class: "player-photo" }, p.photo ? (h("img", { src: p.photo, alt: p.name })) : (h("div", { class: "avatar-placeholder-lg" }, p.name.charAt(0)))), h("div", { class: "player-basic" }, h("h1", null, this.playerName), p.position && h("p", { class: "position" }, p.position), (p.team || p.league) && (h("p", { class: "team-league" }, p.team, p.team && p.league && ' · ', p.league)), p.nationality && h("p", { class: "nationality" }, p.nationality), (p.birthDate || p.height || p.weight) && (h("div", { class: "player-physical" }, p.birthDate && (h("span", { class: "physical-item" }, h("ion-icon", { name: "calendar-outline" }), " ", p.birthDate)), p.height && (h("span", { class: "physical-item" }, h("ion-icon", { name: "resize-outline" }), " ", p.height, " cm")), p.weight && (h("span", { class: "physical-item" }, h("ion-icon", { name: "fitness-outline" }), " ", p.weight, " kg")))), this.isAdmin && (h("div", { class: "admin-buttons" }, h("ion-button", { expand: "block", fill: "solid", color: "tertiary", onClick: () => this.editPlayer.emit() }, h("ion-icon", { name: "create-outline", slot: "start" }), "Editar"), h("ion-button", { expand: "block", fill: "solid", color: "danger", onClick: () => this.deletePlayer.emit() }, h("ion-icon", { name: "trash-outline", slot: "start" }), "Eliminar"))))), this.hasValidLocation(p.location) && (h("ion-card", null, h("ion-card-header", null, h("ion-card-title", null, "Ubicaci\u00F3n")), h("ion-card-content", null, ((_a = p.location) === null || _a === void 0 ? void 0 : _a.address) && h("p", null, p.location.address), h("div", { id: "map-detail", class: "map-detail" }), h("ion-button", { fill: "clear", color: "tertiary", href: this.mapsUrl(p.location.lat, p.location.lng), target: "_blank", class: "ion-margin-top" }, h("ion-icon", { name: "map-outline", slot: "start" }), "Abrir en Google Maps")))), h("div", { class: "comments-wrapper" }, h("ion-card", null, h("ion-card-header", null, h("ion-card-title", null, "A\u00F1adir comentario")), h("ion-card-content", null, h("form", { onSubmit: (e) => this.handleSubmit(e) }, this.loggedInUser ? (h("ion-item", null, h("ion-label", null, "Tu nombre"), h("p", { class: "author-display" }, this.loggedInUser))) : (h("ion-item", { class: { 'item-has-error': !!this.commentAuthorError } }, h("ion-input", { label: "Tu nombre", labelPlacement: "floating", value: this.commentAuthor, onIonInput: (e) => {
                 this.commentAuthor = e.target.value;
                 this.commentAuthorError = '';
             }, required: true }))), !this.loggedInUser && this.commentAuthorError && (h("ion-note", { color: "danger", class: "field-error" }, this.commentAuthorError)), h("ion-item", { class: { 'item-has-error': !!this.commentTextError } }, h("ion-textarea", { label: "Comentario", labelPlacement: "floating", value: this.commentText, onIonInput: (e) => {
@@ -341,6 +388,13 @@ export class PlayerDetail {
                     "resolved": "void",
                     "references": {}
                 }
+            }];
+    }
+    static get elementRef() { return "el"; }
+    static get watchers() {
+        return [{
+                "propName": "player",
+                "methodName": "handlePlayerChange"
             }];
     }
 }

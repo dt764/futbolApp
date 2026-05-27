@@ -13,25 +13,6 @@
 
 <ion-content>
   <div class="profile-content">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Backend activo</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Selecciona a qué backend enviar las peticiones:</p>
-        <ion-segment
-          [value]="toggleService.current()"
-          (ionChange)="toggleService.set($any($event).detail.value)"
-          class="backend-selector"
-        >
-          <ion-segment-button *ngFor="let s of toggleService.all" [value]="s.type">
-            <ion-icon [name]="s.type === 'trwm' ? 'server-outline' : 'cloud-outline'" slot="start"></ion-icon>
-            <ion-label>{{ s.label }}</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-card-content>
-    </ion-card>
-
     <ion-card *ngIf="auth.isLoggedIn()">
       <ion-card-header>
         <ion-card-title>Información de usuario</ion-card-title>

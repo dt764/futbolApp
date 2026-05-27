@@ -13,6 +13,7 @@ import {
 import { from, map, Observable, switchMap, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiService } from './api.service';
+import { BackendToggleService } from '../patterns/backend-toggle.service';
 import { mapFirebaseError } from '../validators';
 
 export interface AppUser {
@@ -36,6 +37,7 @@ export class AuthService {
   readonly appUser = this.appUserSignal.asReadonly();
 
   private api = inject(ApiService);
+  private backendToggle = inject(BackendToggleService);
   private registering = false;
 
   private async syncUser(user: import('firebase/auth').User | null) {
@@ -128,6 +130,7 @@ export class AuthService {
     this.tokenSignal.set(null);
     this.appUserSignal.set(null);
     this.isLoggedIn.set(false);
+    this.backendToggle.reset();
     return from(signOut(this.auth));
   }
 }

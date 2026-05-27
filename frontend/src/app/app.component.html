@@ -1,4 +1,4 @@
-<ion-app [class.admin-theme]="isAdmin">
+<ion-app [class.admin-theme]="isAdmin()">
   <ion-menu contentId="main-content" side="start">
     <ion-header>
       <ion-toolbar>
@@ -6,6 +6,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
+      <app-backend-toggle></app-backend-toggle>
       <ion-list>
         <ion-menu-toggle *ngFor="let page of menuPages">
           <ion-item [routerLink]="page.url" lines="none" detail="false">
@@ -16,7 +17,7 @@
       </ion-list>
 
       <ion-list lines="none" class="auth-section">
-        <ng-container *ngIf="!isLoggedIn; else loggedInMenu">
+        <ng-container *ngIf="!isLoggedIn(); else loggedInMenu">
           <ion-menu-toggle *ngFor="let page of authPages">
             <ion-item [routerLink]="page.url" lines="none" detail="false">
               <ion-icon [name]="page.icon" slot="start" class="auth-icon"></ion-icon>

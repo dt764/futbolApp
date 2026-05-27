@@ -1,13 +1,10 @@
-version: '3.8'
-
 services:
-  # Base de datos compartida interna (Opcional, pero recomendada)
   mi-base-datos:
     image: postgres:15-alpine
     container_name: mi-base-datos
     environment:
-      POSTGRES_USER: usuario_futbol
-      POSTGRES_PASSWORD: password_seguro123
+      POSTGRES_USER: ${DB_USERNAME:-usuario_futbol}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password_seguro123}
       POSTGRES_DB: db_sistema
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
@@ -36,8 +33,7 @@ services:
     ports:
       - "8083:8083"
     environment:
-      EUREKA_URI: http://service-registry:8761/eureka/
-      SPRING_PROFILES_ACTIVE: dev
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
     depends_on:
       service-registry:
         condition: service_started
@@ -49,10 +45,15 @@ services:
     ports:
       - "8081:8081"
     environment:
-      CONFIG_SERVER_HOST: config-server # <-- CORREGIDO: Solo el nombre del contenedor
-      EUREKA_URI: http://service-registry:8761/eureka/
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://mi-base-datos:5432/db_sistema
+      CONFIG_SERVER_HOST: ${CONFIG_SERVER_HOST:-config-server}
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://mi-base-datos:5432/db_sistema}
+      DB_USERNAME: ${DB_USERNAME:-usuario_futbol}
+      DB_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64:-}
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY:-}
+      API_FOOTBALL_KEY: ${API_FOOTBALL_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
       config-server:
         condition: service_started
@@ -68,10 +69,12 @@ services:
     ports:
       - "8082:8082"
     environment:
-      CONFIG_SERVER_HOST: config-server # <-- CORREGIDO: Solo el nombre del contenedor
-      EUREKA_URI: http://service-registry:8761/eureka/
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://mi-base-datos:5432/db_sistema
+      CONFIG_SERVER_HOST: ${CONFIG_SERVER_HOST:-config-server}
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://mi-base-datos:5432/db_sistema}
+      DB_USERNAME: ${DB_USERNAME:-usuario_futbol}
+      DB_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64:-}
     depends_on:
       config-server:
         condition: service_started

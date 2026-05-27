@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, AfterViewInit, OnDestroy } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -11,6 +11,23 @@ import { GeoLocation } from '../models/player.models';
 import { AuthHeaderComponent } from '../auth-header/auth-header.component';
 import { AdminBadgeComponent } from '../admin-badge/admin-badge.component';
 import { sanitizeError } from '../validators';
+import * as L from 'leaflet';
+
+// Fix for Leaflet marker icons
+const iconRetinaUrl = 'assets/leaflet/marker-icon-2x.png';
+const iconUrl = 'assets/leaflet/marker-icon.png';
+const shadowUrl = 'assets/leaflet/marker-shadow.png';
+const iconDefault = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = iconDefault;
 
 function positiveNum(v: string): boolean {
   return v !== '' && !isNaN(Number(v)) && Number(v) > 0;
@@ -27,7 +44,7 @@ function validCoord(v: string): boolean {
   standalone: true,
   imports: [IonicModule, FormsModule, CommonModule, RouterModule, AuthHeaderComponent, AdminBadgeComponent],
 })
-export class PlayerCreatePage {
+export class PlayerCreatePage implements AfterViewInit, OnDestroy {
   private state = inject(PlayerState);
   private sanitizer = inject(DomSanitizer);
 
@@ -58,6 +75,65 @@ export class PlayerCreatePage {
   weightError = '';
   latError = '';
   lngError = '';
+
+  private map?: L.Map;
+  private marker?: L.Marker;
+
+  ngAfterViewInit() {
+    // We delay slightly to ensure the container is rendered if location is set via "Usar mi ubicación"
+    // or if the ng-container switches.
+  }
+
+  ngOnDestroy() {
+    if (this.map) {
+      this.map.remove();
+    }
+  }
+
+  private initMap(lat: number, lng: number) {
+    if (this.map) {
+      this.map.setView([lat, lng], 13);
+      this.updateMarker(lat, lng);
+      return;
+    }
+
+    setTimeout(() => {
+      const container = document.getElementById('map-create');
+      if (!container) return;
+
+      this.map = L.map('map-create').setView([lat, lng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(this.map);
+
+      this.updateMarker(lat, lng);
+
+      this.map.on('click', (e: L.LeafletMouseEvent) => {
+        this.form.location = {
+          lat: e.latlng.lat,
+          lng: e.latlng.lng
+        };
+        this.updateMarker(e.latlng.lat, e.latlng.lng);
+      });
+    }, 100);
+  }
+
+  private updateMarker(lat: number, lng: number) {
+    if (!this.map) return;
+    if (this.marker) {
+      this.marker.setLatLng([lat, lng]);
+    } else {
+      this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+      this.marker.on('dragend', () => {
+        const position = this.marker!.getLatLng();
+        this.form.location = {
+          lat: position.lat,
+          lng: position.lng
+        };
+      });
+    }
+  }
 
   private clearErrors() {
     this.error = '';
@@ -152,12 +228,18 @@ export class PlayerCreatePage {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude,
       };
+      this.initMap(this.form.location.lat, this.form.location.lng);
     } catch {}
     this.loadingLocation = false;
   }
 
   clearLocation() {
     this.form.location = null;
+    if (this.map) {
+      this.map.remove();
+      this.map = undefined;
+      this.marker = undefined;
+    }
   }
 
   hasValidLocation(): boolean {

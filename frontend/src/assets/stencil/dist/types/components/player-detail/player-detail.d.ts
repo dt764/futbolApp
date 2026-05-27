@@ -30,6 +30,7 @@ export interface Comment {
     };
 }
 export declare class PlayerDetail {
+    el: HTMLElement;
     player?: Player | null;
     comments: Comment[];
     isAdmin: boolean;
@@ -60,6 +61,10 @@ export declare class PlayerDetail {
     locationLoading: boolean;
     commentTextError: string;
     commentAuthorError: string;
+    private map?;
+    handlePlayerChange(): void;
+    componentDidLoad(): void;
+    private initMap;
     get averageRating(): number;
     get playerName(): string;
     stars(rating: number): number[];

@@ -8,6 +8,6 @@ export class TrwmBackendStrategy implements BackendStrategy {
   readonly label = 'TRWM';
 
   getBaseUrl(): string {
-    return environment.apiUrl ?? 'http://localhost:3000';
+    return environment.trwmApiUrl;
   }
 }

@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component, inject, ViewChild } from '@angular/core';
+import { IonicModule, IonPopover } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -13,15 +13,18 @@ import { AuthService } from '../services/auth.service';
 })
 export class AuthHeaderComponent {
   private auth = inject(AuthService);
-  private router = inject(Router);
 
-  get isLoggedIn() { return this.auth.isLoggedIn(); }
+  @ViewChild('userPopover') userPopover!: IonPopover;
+
+  readonly isLoggedIn = this.auth.isLoggedIn;
+  readonly appUser = this.auth.appUser;
+
   get isAdmin() { return this.auth.appUser()?.role === 'admin'; }
-  get appUser() { return this.auth.appUser(); }
 
-  async logout() {
+  logout() {
+    this.userPopover.dismiss();
     this.auth.logout().subscribe(() => {
-      this.router.navigateByUrl('/home');
+      window.location.href = '/home';
     });
   }
 }
