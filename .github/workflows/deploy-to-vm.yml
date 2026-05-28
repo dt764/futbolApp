@@ -11,6 +11,10 @@ env:
   REGISTRY: europe-west1-docker.pkg.dev
   SERVICE: futbol-stack
 
+concurrency:
+  group: deploy-${{ github.ref_name }}-vm
+  cancel-in-progress: false
+
 jobs:
   deploy-develop:
     name: Deploy to VM (develop)
