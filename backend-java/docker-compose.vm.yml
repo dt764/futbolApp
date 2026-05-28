@@ -1,4 +1,3 @@
-# DEPLOYED_BY_CI - 2026
 version: '3.8'
 
 networks:
