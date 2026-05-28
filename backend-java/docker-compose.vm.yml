@@ -1,97 +1,111 @@
-version: '3.8'
-
+# DEPLOYED_BY_CI - 2026
 networks:
   futbol-network:
     driver: bridge
 
 services:
-  # -------------------------------------------------------------
-  # 1. SERVIDOR DE CONFIGURACIÓN (Config Server)
-  # -------------------------------------------------------------
+  mi-base-datos:
+    image: postgres:15-alpine
+    container_name: mi-base-datos
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-usuario_futbol}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      POSTGRES_DB: db_sistema
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario_futbol -d db_sistema"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - futbol-network
+
   config-server:
-    image: config-server:latest # Ajusta con el nombre exacto de tu imagen si varía
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/config-server-repo/config-server:latest-develop
     container_name: config-server
-    restart: always
     ports:
       - "8888:8888"
+    restart: unless-stopped
     networks:
       - futbol-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # -------------------------------------------------------------
-  # 2. REGISTRO DE SERVICIOS (Eureka Server)
-  # -------------------------------------------------------------
   service-registry:
-    image: service-registry:latest # Ajusta con el nombre exacto de tu imagen
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/service-registry-repo/service-registry:latest-develop
     container_name: service-registry
-    restart: always
     ports:
       - "8761:8761"
-    networks:
-      - futbol-network
+    # 🔄 CORRECCIÓN ALPINE: Conservada tal cual tuya, funciona impecable.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
     depends_on:
       config-server:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - futbol-network
 
-  # -------------------------------------------------------------
-  # 3. PUERTA DE ENLACE (API Gateway - ÚNICO PUNTO DE ENTRADA)
-  # -------------------------------------------------------------
-  api-gateway:
-    image: api-gateway:latest # Ajusta con el nombre exacto de tu imagen
-    container_name: api-gateway
-    restart: always
+  gateway:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/gateway-repo/gateway:latest-develop
+    container_name: gateway
     ports:
-      - "8083:8083" # Este es el único puerto que necesitas atacar desde fuera
-    networks:
-      - futbol-network
+      - "8083:8083" # Único punto de entrada a los microservicios
+    environment:
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
     depends_on:
       service-registry:
         condition: service_healthy
-    environment:
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+    restart: unless-stopped
+    networks:
+      - futbol-network
 
-  # -------------------------------------------------------------
-  # 4. MICROSERVICIO DE JUGADORES (Player Service)
-  # -------------------------------------------------------------
   player-service:
-    image: player-service:latest # Ajusta con el nombre exacto de tu imagen
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/player-service-repo/player-service:latest-develop
     container_name: player-service
-    restart: always
-    # PUERTOS CERRADOS AL EXTERIOR POR SEGURIDAD. Solo accesibles vía Gateway.
+    # 🚫 PUERTOS PRIVADOS: Ya no se exponen al exterior (adiós ataques bots)
+    environment:
+      CONFIG_SERVER_HOST: ${CONFIG_SERVER_HOST:-config-server}
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://mi-base-datos:5432/db_sistema}
+      DB_USERNAME: ${DB_USERNAME:-usuario_futbol}
+      DB_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64:-}
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY:-}
+      API_FOOTBALL_KEY: ${API_FOOTBALL_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    depends_on:
+      mi-base-datos:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      service-registry:
+        condition: service_started
+    restart: unless-stopped
     networks:
       - futbol-network
-    depends_on:
-      service-registry:
-        condition: service_healthy
-    environment:
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
-      # Si usas base de datos en Docker, añade aquí sus variables (ej. SPRING_DATASOURCE_URL)
 
-  # -------------------------------------------------------------
-  # 5. MICROSERVICIO DE COMENTARIOS (Comment Service)
-  # -------------------------------------------------------------
   comment-service:
-    image: comment-service:latest # Ajusta con el nombre exacto de tu imagen
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/comment-service-repo/comment-service:latest-develop
     container_name: comment-service
-    restart: always
-    # PUERTOS CERRADOS AL EXTERIOR POR SEGURIDAD. Solo accesibles vía Gateway.
+    # 🚫 PUERTOS PRIVADOS: Protegido del tráfico externo malicioso
+    environment:
+      CONFIG_SERVER_HOST: ${CONFIG_SERVER_HOST:-config-server}
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://mi-base-datos:5432/db_sistema}
+      DB_USERNAME: ${DB_USERNAME:-usuario_futbol}
+      DB_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64:-}
+    depends_on:
+      mi-base-datos:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      service-registry:
+        condition: service_started
+    restart: unless-stopped
     networks:
       - futbol-network
-    depends_on:
-      service-registry:
-        condition: service_healthy
-    environment:
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
-      # Si usas base de datos en Docker, añade aquí sus variables
