@@ -28,12 +28,12 @@ services:
     container_name: service-registry
     ports:
       - "8761:8761"
-    # 🔄 CORRECCIÓN: Docker comprobará que el panel de Eureka responda HTTP 200 antes de darlo por válido
+    # 🔄 CORRECCIÓN ALPINE: Usamos wget (que viene preinstalado en TODO Alpine) para comprobar el puerto de Eureka de forma segura
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761/ || exit 1"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 15
     depends_on:
       config-server:
         condition: service_started
@@ -46,7 +46,6 @@ services:
       - "8083:8083"
     environment:
       EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
-    # 🔄 CORRECCIÓN: Espera a que el registro esté totalmente operativo (healthy), evitando el 'Connection refused'
     depends_on:
       service-registry:
         condition: service_healthy
