@@ -20,8 +20,8 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
 
     @Query("SELECT p FROM Player p WHERE " +
            "LOWER(p.name) LIKE :name AND " +
-           "LOWER(p.team) LIKE :team AND " +
-           "LOWER(p.league) LIKE :league AND " +
+           "(:team = '%' OR LOWER(p.team) LIKE :team) AND " +
+           "(:league = '%' OR LOWER(p.league) LIKE :league) AND " +
            "(:createdBy IS NULL OR p.createdBy = :createdBy) AND " +
            "p.createdAt >= :createdFrom AND " +
            "p.createdAt <= :createdTo")
