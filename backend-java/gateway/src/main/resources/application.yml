@@ -17,7 +17,7 @@ spring:
         - id: player-service
           uri: lb://player-service
           predicates:
-            - Path=/api/players/**,/api-docs/player-service
+            - Path=/api/players/**,/api-docs/player-service,/api/ideal-team/**
         - id: comment-service
           uri: lb://comment-service
           predicates:
