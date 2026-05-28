@@ -174,7 +174,12 @@ public class GroqService {
 
         String content = (String) ((Map<String, Object>) choices.get(0).get("message")).get("content");
 
-        // Parse the JSON from the response
+        // Strip markdown code block if present (Groq sometimes wraps JSON in ```json ... ```)
+        content = content.trim();
+        if (content.startsWith("```")) {
+            content = content.replaceAll("(?s)```(?:json)?\\s*", "").trim();
+        }
+
         try {
             return new com.fasterxml.jackson.databind.ObjectMapper().readValue(content, Map.class);
         } catch (Exception e) {
