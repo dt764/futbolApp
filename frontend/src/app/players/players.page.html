@@ -34,14 +34,16 @@
     <!-- Filter box -->
     <div class="filter-box" [class.hidden-mobile]="mobileTab === 'add'">
       <h3 class="filter-title">Filtrar jugadores</h3>
-      <ion-segment *ngIf="isLoggedIn" [value]="filterMode" (ionChange)="onFilterChange($event)" class="filter-segment">
-        <ion-segment-button value="all">
-          <ion-label>Todos</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="mine">
-          <ion-label>Mis jugadores</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+      @if (isLoggedIn) {
+        <ion-segment [value]="filterMode" (ionChange)="onFilterChange($event)" class="filter-segment">
+          <ion-segment-button value="all">
+            <ion-label>Todos</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="mine">
+            <ion-label>Mis jugadores</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      }
 
       <div class="filter-row">
         <ion-item class="filter-item">
@@ -88,37 +90,50 @@
     </div>
   </div>
 
-  <ion-note *ngIf="error()" color="danger" class="ion-padding-start ion-padding-top">
-    {{ error() }}
-  </ion-note>
+  @if (error()) {
+    <ion-note color="danger" class="ion-padding-start ion-padding-top">
+      {{ error() }}
+    </ion-note>
+  }
 
-  <ion-note *ngIf="!loading() && players().length === 0 && !error()" class="ion-padding-start ion-padding-top">
-    No se encontraron jugadores.
-  </ion-note>
+  @if (!loading() && players().length === 0 && !error()) {
+    <ion-note class="ion-padding-start ion-padding-top">
+      No se encontraron jugadores.
+    </ion-note>
+  }
 
   <!-- Player grid: single column on mobile, multi-column on desktop -->
   <div class="player-grid">
-    <ion-card *ngFor="let p of players()" button routerLink="/players/{{ p._id }}" class="player-card">
-      <div class="player-card-inner">
-        <div class="player-card-avatar">
-          <img *ngIf="p.photo; else cardNoPhoto" [src]="p.photo" [alt]="p.name" />
-          <ng-template #cardNoPhoto>
-            <div class="avatar-placeholder">{{ p.name.charAt(0) }}</div>
-          </ng-template>
+    @for (p of players(); track p._id) {
+      <ion-card button routerLink="/players/{{ p._id }}" class="player-card">
+        <div class="player-card-inner">
+          <div class="player-card-avatar">
+            @if (p.photo) {
+              <img [src]="p.photo" [alt]="p.name" />
+            } @else {
+              <div class="avatar-placeholder">{{ p.name.charAt(0) }}</div>
+            }
+          </div>
+          <div class="player-card-info">
+            <h3>{{ getPlayerName(p) }}</h3>
+            <p>{{ p.position }}@if (p.team) { <span> &middot; {{ p.team }}</span> }</p>
+            @if (p.nationality) {
+              <p>{{ p.nationality }}</p>
+            }
+            @if (p.createdAt) {
+              <p class="date-badge"><ion-icon name="calendar-outline"></ion-icon> {{ formatDate(p.createdAt) }}</p>
+            }
+          </div>
         </div>
-        <div class="player-card-info">
-          <h3>{{ getPlayerName(p) }}</h3>
-          <p>{{ p.position }}<span *ngIf="p.team"> &middot; {{ p.team }}</span></p>
-          <p *ngIf="p.nationality">{{ p.nationality }}</p>
-          <p *ngIf="p.createdAt" class="date-badge"><ion-icon name="calendar-outline"></ion-icon> {{ formatDate(p.createdAt) }}</p>
-        </div>
-      </div>
-    </ion-card>
+      </ion-card>
+    }
   </div>
 
   <ion-infinite-scroll (ionInfinite)="loadMore($event)" threshold="100px">
     <ion-infinite-scroll-content loadingText="Cargando más jugadores..."></ion-infinite-scroll-content>
   </ion-infinite-scroll>
 
-  <ion-spinner *ngIf="loading() && players().length === 0" class="center-spinner"></ion-spinner>
+  @if (loading() && players().length === 0) {
+    <ion-spinner class="center-spinner"></ion-spinner>
+  }
 </ion-content>

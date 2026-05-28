@@ -76,16 +76,30 @@ export class PlayerDetailPage implements OnInit {
       });
   }
 
-  handleDeleteComment(event: CustomEvent<string>) {
+  async handleDeleteComment(event: CustomEvent<string>) {
     const commentId = event.detail;
-    this.api.delete(`/api/comments/${commentId}`).subscribe({
-      next: () => {
-        this.comments = this.comments.filter((c) => c._id !== commentId);
-      },
-      error: () => {
-        this.error = 'Error al eliminar el comentario';
-      },
+    const alert = await this.alertCtrl.create({
+      header: 'Eliminar comentario',
+      message: '¿Estás seguro de que quieres eliminar este comentario? Esta acción no se puede deshacer.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: () => {
+            this.api.delete(`/api/comments/${commentId}`).subscribe({
+              next: () => {
+                this.comments = this.comments.filter((c) => c._id !== commentId);
+              },
+              error: () => {
+                this.error = 'Error al eliminar el comentario';
+              },
+            });
+          },
+        },
+      ],
     });
+    alert.present();
   }
 
   handleEditPlayer() {

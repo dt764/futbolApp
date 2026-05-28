@@ -11,10 +11,12 @@ import { BackendToggleService } from './backend-toggle.service';
         [value]="service.current()"
         (ionChange)="onChange($any($event).detail.value)"
       >
-        <ion-segment-button *ngFor="let s of service.all" [value]="s.type">
-          <ion-icon [name]="s.type === 'trwm' ? 'server-outline' : 'cloud-outline'" slot="start"></ion-icon>
-          <ion-label>{{ s.label }}</ion-label>
-        </ion-segment-button>
+        @for (s of service.all; track s.type) {
+          <ion-segment-button [value]="s.type">
+            <ion-icon [name]="s.type === 'trwm' ? 'server-outline' : 'cloud-outline'" slot="start"></ion-icon>
+            <ion-label>{{ s.label }}</ion-label>
+          </ion-segment-button>
+        }
       </ion-segment>
     </div>
   `,

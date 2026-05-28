@@ -19,7 +19,7 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
     boolean existsByApiId(Long apiId);
 
     @Query("SELECT p FROM Player p WHERE " +
-           "LOWER(p.name) LIKE :name AND " +
+           "(LOWER(p.name) LIKE :name OR LOWER(p.firstname) LIKE :name OR LOWER(p.lastname) LIKE :name) AND " +
            "(:team = '%' OR LOWER(p.team) LIKE :team) AND " +
            "(:league = '%' OR LOWER(p.league) LIKE :league) AND " +
            "(:createdBy IS NULL OR p.createdBy = :createdBy) AND " +

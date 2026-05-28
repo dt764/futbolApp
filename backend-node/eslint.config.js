@@ -36,6 +36,13 @@ export default [
   },
 
   {
+    files: ["app_api/utils/logger.js"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+
+  {
     files: ["**/*.test.js", "**/*.spec.js", "**/tests/**/*.js"],
     languageOptions: {
       globals: {

@@ -4,7 +4,7 @@ import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-admin-badge',
-  template: '<span *ngIf="isAdmin" class="admin-badge">Admin</span>',
+  template: '@if (isAdmin) { <span class="admin-badge">Admin</span> }',
   styles: [`
     .admin-badge {
       display: inline-block;

@@ -5,9 +5,10 @@ require('dotenv').config();
 const http = require('http');
 const app = require('../app');
 const connectDB = require('../app_api/models/db');
+const logger = require('../app_api/utils/logger');
 
 connectDB().catch(err => {
-  console.error('Error conectando a MongoDB:', err.message);
+  logger.error('Error conectando a MongoDB:', err.message);
 });
 
 const PORT = process.env.PORT || 3000; 
@@ -19,7 +20,7 @@ const server = http.createServer(app);
 server.listen(PORT);
 
 server.on('listening', () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });
 
 server.on('error', (error) => {
@@ -29,12 +30,12 @@ server.on('error', (error) => {
 
   switch (error.code) {
     case 'EACCES':
-      console.error(`Port ${PORT} requires elevated privileges`);
+      logger.error(`Port ${PORT} requires elevated privileges`);
       process.exit(1);
       break;
 
     case 'EADDRINUSE':
-      console.error(`Port ${PORT} is already in use`);
+      logger.error(`Port ${PORT} is already in use`);
       process.exit(1);
       break;
 

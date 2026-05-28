@@ -1,5 +1,6 @@
 const Player = require('../models/Player');
 const { createIdealTeamService } = require('../services/groq');
+const logger = require('../utils/logger');
 
 const FANTASY_PLAYERS = [
   { name: 'Lionel Messi', position: 'Delantero', team: 'Inter Miami', league: 'MLS', nationality: 'Argentina', height: '170', weight: '72' },
@@ -23,12 +24,16 @@ const generate = async (req, res) => {
   try {
     const { formation, source = 'database' } = req.body;
 
+    logger.info('Generate ideal team', { formation, source });
+
     let players;
     if (source === 'fantasy') {
       players = FANTASY_PLAYERS;
+      logger.info('Using fantasy players', { count: players.length });
     } else {
       const dbPlayers = await Player.find({ source: 'api' }).lean();
       if (dbPlayers.length < 11) {
+        logger.warn('Not enough API players', { count: dbPlayers.length });
         return res.status(400).json({
           error: `Se necesitan al menos 11 jugadores importados de la API. Actualmente hay ${dbPlayers.length}.`,
         });
@@ -42,6 +47,7 @@ const generate = async (req, res) => {
         height: p.height,
         weight: p.weight,
       }));
+      logger.info('Using database players', { count: players.length });
     }
 
     const service = createIdealTeamService();
@@ -70,8 +76,10 @@ const generate = async (req, res) => {
       reasoning: raw.summary || '',
     };
 
+    logger.info('Ideal team generated', { formation, playerCount: team.players.length });
     res.json({ team, source });
   } catch (err) {
+    logger.error('Error generating ideal team', err.message);
     if (err.message?.startsWith('Groq API error') || err.message?.includes('GROQ_API_KEY')) {
       return res.status(502).json({ error: 'Error al contactar con Groq', detail: err.message });
     }

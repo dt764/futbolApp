@@ -4,15 +4,16 @@ dns.setDefaultResultOrder('ipv4first');
 
 const mongoose = require('mongoose');
 const config = require('../config');
+const logger = require('../utils/logger');
 
 mongoose.connection.on('error', err => {
-  console.error(`❌ Error crítico de MongoDB: ${err}`);
+  logger.error(`Error crítico de MongoDB: ${err}`);
 });
 mongoose.connection.on('disconnected', () => {
-  console.warn('⚠️ MongoDB desconectado');
+  logger.warn('MongoDB desconectado');
 });
 mongoose.connection.on('reconnected', () => {
-  console.log('✅ MongoDB reconectado');
+  logger.info('MongoDB reconectado');
 });
 
 const connectDB = async () => {
@@ -22,13 +23,13 @@ const connectDB = async () => {
     throw new Error('La variable MONGO_URI no está definida en el entorno.');
   }
 
-  console.log('🔍 Intentando conectar a:', mongoURI.replace(/:([^@]+)@/, ':****@'));
+  logger.info('Intentando conectar a:', mongoURI.replace(/:([^@]+)@/, ':****@'));
 
   const conn = await mongoose.connect(mongoURI, {
     autoIndex: process.env.NODE_ENV !== 'production',
   });
 
-  console.log(`✅ MongoDB Conectado: ${conn.connection.host}`);
+  logger.info(`MongoDB Conectado: ${conn.connection.host}`);
 };
 
 module.exports = connectDB;

@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const path = require('path');
+const logger = require('../utils/logger');
 
 let serviceAccount = null;
 
@@ -12,7 +13,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_B64) {
 }
 
 if (!serviceAccount) {
-  console.warn('Firebase no configurado — define FIREBASE_SERVICE_ACCOUNT_PATH o FIREBASE_SERVICE_ACCOUNT en .env');
+  logger.warn('Firebase no configurado');
 }
 
 let firebaseApp = null;

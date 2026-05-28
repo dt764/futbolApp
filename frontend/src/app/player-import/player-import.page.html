@@ -33,10 +33,12 @@
               <ion-label position="floating">Equipo *</ion-label>
               <ion-input [(ngModel)]="search.team" (ionBlur)="teamError = ''" required></ion-input>
             </ion-item>
-            <ion-note *ngIf="teamError" color="danger" class="field-error">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-              {{ teamError }}
-            </ion-note>
+            @if (teamError) {
+              <ion-note color="danger" class="field-error">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                {{ teamError }}
+              </ion-note>
+            }
 
             <ion-item>
               <ion-label position="floating">Liga (opcional)</ion-label>
@@ -50,8 +52,12 @@
             (click)="doSearch()"
             [disabled]="loading"
           >
-            <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
-            <ion-icon *ngIf="!loading" name="search-circle-outline" slot="start"></ion-icon>
+            @if (loading) {
+              <ion-spinner slot="start"></ion-spinner>
+            }
+            @if (!loading) {
+              <ion-icon name="search-circle-outline" slot="start"></ion-icon>
+            }
             {{ loading ? 'Buscando...' : 'Buscar' }}
           </ion-button>
         </div>
@@ -59,34 +65,44 @@
       </div>
 
       <div class="import-main">
-        <div class="empty-state" *ngIf="!searched && !loading && results.length === 0 && !error">
-          <div class="empty-icon">
-            <ion-icon name="cloud-download-outline"></ion-icon>
+        @if (!searched && !loading && results.length === 0 && !error) {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="cloud-download-outline"></ion-icon>
+            </div>
+            <h3>Importar jugadores</h3>
+            <p>Busca jugadores por nombre y equipo en la API externa, luego impórtalos a tu base de datos</p>
           </div>
-          <h3>Importar jugadores</h3>
-          <p>Busca jugadores por nombre y equipo en la API externa, luego impórtalos a tu base de datos</p>
-        </div>
-        <ion-note *ngIf="error" color="danger" class="error-note">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          {{ error }}
-        </ion-note>
+        }
+        @if (error) {
+          <ion-note color="danger" class="error-note">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ error }}
+          </ion-note>
+        }
 
-        <ion-note *ngIf="importError" color="danger" class="error-note">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          {{ importError }}
-        </ion-note>
+        @if (importError) {
+          <ion-note color="danger" class="error-note">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ importError }}
+          </ion-note>
+        }
 
-        <ion-note *ngIf="importSuccess" color="success" class="success-note">
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
-          {{ importSuccess }}
-        </ion-note>
+        @if (importSuccess) {
+          <ion-note color="success" class="success-note">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            {{ importSuccess }}
+          </ion-note>
+        }
 
-        <div *ngIf="searched && !loading && results.length === 0 && !error" class="empty-results">
-          <ion-icon name="search-outline"></ion-icon>
-          <p>No se encontraron jugadores. Prueba con otro nombre o equipo.</p>
-        </div>
+        @if (searched && !loading && results.length === 0 && !error) {
+          <div class="empty-results">
+            <ion-icon name="search-outline"></ion-icon>
+            <p>No se encontraron jugadores. Prueba con otro nombre o equipo.</p>
+          </div>
+        }
 
-        <ng-container *ngIf="results.length > 0">
+        @if (results.length > 0) {
           <div class="results-header">
             <div class="results-title">
               <ion-icon name="people-outline"></ion-icon>
@@ -104,54 +120,66 @@
                 [disabled]="selectedCount() === 0 || bulkImporting"
                 (click)="importSelected()"
               >
-                <ion-spinner *ngIf="bulkImporting" slot="start"></ion-spinner>
-                <ion-icon *ngIf="!bulkImporting" name="download-outline" slot="start"></ion-icon>
+                @if (bulkImporting) {
+                  <ion-spinner slot="start"></ion-spinner>
+                }
+                @if (!bulkImporting) {
+                  <ion-icon name="download-outline" slot="start"></ion-icon>
+                }
                 Importar {{ selectedCount() > 0 ? '(' + selectedCount() + ')' : '' }}
               </ion-button>
             </div>
           </div>
 
           <div class="results-grid">
-            <div
-              *ngFor="let p of results"
-              class="result-card"
-              [class.selected]="selectedIds.has(p.player.id)"
-              (click)="toggleSelection(p.player.id)"
-            >
-              <div class="result-card-inner">
-                <div class="checkbox-col">
-                  <ion-icon
-                    [name]="selectedIds.has(p.player.id) ? 'checkbox' : 'square-outline'"
-                    color="tertiary"
-                  ></ion-icon>
-                </div>
-                <div class="photo-col">
-                  <div class="player-photo">
-                    <img *ngIf="p.player.photo; else noPhoto" [src]="p.player.photo" [alt]="p.player.name" />
-                    <ng-template #noPhoto>
-                      <div class="photo-placeholder">{{ (p.player.firstname || p.player.name || '?').charAt(0) }}</div>
-                    </ng-template>
+            @for (p of results; track p.player.id) {
+              <div
+                class="result-card"
+                [class.selected]="selectedIds.has(p.player.id)"
+                (click)="toggleSelection(p.player.id)"
+              >
+                <div class="result-card-inner">
+                  <div class="checkbox-col">
+                    <ion-icon
+                      [name]="selectedIds.has(p.player.id) ? 'checkbox' : 'square-outline'"
+                      color="tertiary"
+                    ></ion-icon>
+                  </div>
+                  <div class="photo-col">
+                    <div class="player-photo">
+                      @if (p.player.photo) {
+                        <img [src]="p.player.photo" [alt]="p.player.name" />
+                      } @else {
+                        <div class="photo-placeholder">{{ (p.player.firstname || p.player.name || '?').charAt(0) }}</div>
+                      }
+                    </div>
+                  </div>
+                  <div class="info-col">
+                    <h4>{{ getPlayerName(p) }}</h4>
+                    <p class="player-pos">{{ getPosition(p) }}</p>
+                    @if (getTeam(p)) {
+                      <p class="player-team">
+                        <ion-icon name="shield-outline"></ion-icon>
+                        {{ getTeam(p) }}
+                      </p>
+                    }
+                    @if (getLeague(p)) {
+                      <p class="player-league">
+                        <ion-icon name="trophy-outline"></ion-icon>
+                        {{ getLeague(p) }}
+                      </p>
+                    }
+                  </div>
+                  <div class="import-col">
+                    @if (importingId === p.player.id) {
+                      <ion-spinner class="import-spinner"></ion-spinner>
+                    }
                   </div>
                 </div>
-                <div class="info-col">
-                  <h4>{{ getPlayerName(p) }}</h4>
-                  <p class="player-pos">{{ getPosition(p) }}</p>
-                  <p class="player-team" *ngIf="getTeam(p)">
-                    <ion-icon name="shield-outline"></ion-icon>
-                    {{ getTeam(p) }}
-                  </p>
-                  <p class="player-league" *ngIf="getLeague(p)">
-                    <ion-icon name="trophy-outline"></ion-icon>
-                    {{ getLeague(p) }}
-                  </p>
-                </div>
-                <div class="import-col">
-                  <ion-spinner *ngIf="importingId === p.player.id" class="import-spinner"></ion-spinner>
-                </div>
               </div>
-            </div>
+            }
           </div>
-        </ng-container>
+        }
       </div>
     </div>
   </div>

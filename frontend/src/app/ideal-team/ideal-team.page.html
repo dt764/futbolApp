@@ -28,21 +28,23 @@
             <span>Formación</span>
           </div>
           <div class="formation-chips">
-            <ion-chip
-              *ngFor="let f of formations"
-              [class.chip-active]="selectedFormation === f"
-              (click)="selectedFormation = selectedFormation === f ? '' : f"
-            >
-              {{ f }}
-            </ion-chip>
-            <ion-chip
-              *ngIf="selectedFormation"
-              color="medium"
-              (click)="selectedFormation = ''"
-            >
-              <ion-icon name="close-outline"></ion-icon>
-              Limpiar
-            </ion-chip>
+            @for (f of formations; track f) {
+              <ion-chip
+                [class.chip-active]="selectedFormation === f"
+                (click)="selectedFormation = selectedFormation === f ? '' : f"
+              >
+                {{ f }}
+              </ion-chip>
+            }
+            @if (selectedFormation) {
+              <ion-chip
+                color="medium"
+                (click)="selectedFormation = ''"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+                Limpiar
+              </ion-chip>
+            }
           </div>
         </div>
 
@@ -69,19 +71,25 @@
           (click)="generate()"
           [disabled]="loading"
         >
-          <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
-          <ion-icon *ngIf="!loading" name="sparkles-outline" slot="start"></ion-icon>
+          @if (loading) {
+            <ion-spinner slot="start"></ion-spinner>
+          }
+          @if (!loading) {
+            <ion-icon name="sparkles-outline" slot="start"></ion-icon>
+          }
           {{ loading ? 'Generando...' : 'Generar equipo ideal' }}
         </ion-button>
       </div>
     </div>
 
-    <ion-note *ngIf="error" color="danger" class="error-note">
-      <ion-icon name="alert-circle-outline"></ion-icon>
-      {{ error }}
-    </ion-note>
+    @if (error) {
+      <ion-note color="danger" class="error-note">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ error }}
+      </ion-note>
+    }
 
-    <ng-container *ngIf="team">
+    @if (team) {
       <div class="team-header">
         <div class="formation-badge">
           <ion-icon name="shirt-outline"></ion-icon>
@@ -91,44 +99,59 @@
       </div>
 
       <div class="player-grid">
-        <div
-          *ngFor="let p of sortedTeam(); let i = index"
-          class="player-card"
-          [class.starting]="i < 11"
-        >
-          <div class="player-card-inner">
-            <div class="player-pos-badge {{ p.position.toLowerCase() }}">
-              <span class="pos-abbr">{{ positionAbbr(p.position) }}</span>
+        @for (p of sortedTeam(); track p.name; let i = $index) {
+          <div
+            class="player-card"
+            [class.starting]="i < 11"
+          >
+            <div class="player-card-inner">
+              <div class="player-pos-badge {{ p.position.toLowerCase() }}">
+                <span class="pos-abbr">{{ positionAbbr(p.position) }}</span>
+              </div>
+              <div class="player-info">
+                <h4>{{ p.name }}</h4>
+                <p class="player-position">{{ p.position }}</p>
+                @if (p.team || p.nationality) {
+                  <p class="player-meta">
+                    @if (p.team) {
+                      <span>{{ p.team }}</span>
+                    }
+                    @if (p.team && p.nationality) {
+                      <span> · </span>
+                    }
+                    @if (p.nationality) {
+                      <span>{{ p.nationality }}</span>
+                    }
+                  </p>
+                }
+              </div>
+              @if (i < 11) {
+                <div class="player-number">{{ i + 1 }}</div>
+              }
             </div>
-            <div class="player-info">
-              <h4>{{ p.name }}</h4>
-              <p class="player-position">{{ p.position }}</p>
-              <p *ngIf="p.team || p.nationality" class="player-meta">
-                <span *ngIf="p.team">{{ p.team }}</span>
-                <span *ngIf="p.team && p.nationality"> · </span>
-                <span *ngIf="p.nationality">{{ p.nationality }}</span>
-              </p>
-            </div>
-            <div class="player-number" *ngIf="i < 11">{{ i + 1 }}</div>
           </div>
-        </div>
+        }
       </div>
 
-      <div class="reasoning-card" *ngIf="reasoning">
-        <div class="reasoning-header">
-          <ion-icon name="chatbubbles-outline"></ion-icon>
-          <span>Justificación de la IA</span>
+      @if (reasoning) {
+        <div class="reasoning-card">
+          <div class="reasoning-header">
+            <ion-icon name="chatbubbles-outline"></ion-icon>
+            <span>Justificación de la IA</span>
+          </div>
+          <p>{{ reasoning }}</p>
         </div>
-        <p>{{ reasoning }}</p>
-      </div>
-    </ng-container>
+      }
+    }
 
-    <div class="empty-state" *ngIf="!team && !loading && !error">
-      <div class="empty-icon">
-        <ion-icon name="football-outline"></ion-icon>
+    @if (!team && !loading && !error) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <ion-icon name="football-outline"></ion-icon>
+        </div>
+        <h3>Sin equipo aún</h3>
+        <p>Configura los parámetros y pulsa "Generar equipo ideal" para ver el resultado</p>
       </div>
-      <h3>Sin equipo aún</h3>
-      <p>Configura los parámetros y pulsa "Generar equipo ideal" para ver el resultado</p>
-    </div>
+    }
   </div>
 </ion-content>

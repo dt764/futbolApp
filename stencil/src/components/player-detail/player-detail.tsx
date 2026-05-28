@@ -418,7 +418,7 @@ export class PlayerDetail {
                         <span class="comment-meta">
                           {new Date(c.createdAt).toLocaleString()}
                           {this.hasValidLocation(c.location) && (
-                            <span> · {c.location!.lat.toFixed(4)}, {c.location!.lng.toFixed(4)}</span>
+                            <span> · <a href={`https://www.google.com/maps?q=${c.location!.lat},${c.location!.lng}`} target="_blank" rel="noopener noreferrer">{c.location!.lat.toFixed(4)}, {c.location!.lng.toFixed(4)}</a></span>
                           )}
                         </span>
                       </div>
