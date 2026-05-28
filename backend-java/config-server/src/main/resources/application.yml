@@ -5,12 +5,18 @@ spring:
   application:
     name: config-server
   profiles:
-    active: native
+    active: git,native
   cloud:
     config:
       server:
+        git:
+          uri: https://github.com/dt764/futbolApp-config
+          clone-on-start: true
+          default-label: main
+          timeout: 10
         native:
           search-locations: classpath:/config
+        fail-fast: false
 
 management:
   endpoints:
