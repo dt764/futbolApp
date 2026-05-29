@@ -1,0 +1,6 @@
+node_modules
+www
+coverage
+.git
+.github
+*.md

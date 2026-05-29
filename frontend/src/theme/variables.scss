@@ -1,0 +1,71 @@
+:root {
+  --ion-color-primary: #006030;
+  --ion-color-primary-rgb: 0,96,48;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255,255,255;
+  --ion-color-primary-shade: #00542a;
+  --ion-color-primary-tint: #1a7045;
+
+  --ion-color-secondary: #309000;
+  --ion-color-secondary-rgb: 48,144,0;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255,255,255;
+  --ion-color-secondary-shade: #2a7f00;
+  --ion-color-secondary-tint: #459b1a;
+
+  --ion-color-tertiary: #60c000;
+  --ion-color-tertiary-rgb: 96,192,0;
+  --ion-color-tertiary-contrast: #000000;
+  --ion-color-tertiary-contrast-rgb: 0,0,0;
+  --ion-color-tertiary-shade: #54a900;
+  --ion-color-tertiary-tint: #70c61a;
+
+  --ion-color-success: #309000;
+  --ion-color-warning: #c09630;
+  --ion-color-danger: #c03030;
+  --ion-color-medium: #909090;
+  --ion-color-light: #f0f0f0;
+
+  --ion-background-color: #003000;
+  --ion-background-color-rgb: 0,48,0;
+  --ion-text-color: #e0e0e0;
+}
+
+ion-alert {
+  --background: #1a3a1a;
+  --ion-alert-head-color: #ffffff;
+  --ion-alert-message-color: #d0d0d0;
+  --ion-alert-button-color: #60c000;
+}
+
+.admin-theme {
+  --ion-color-primary: #8a6d20;
+  --ion-color-primary-rgb: 138,109,32;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255,255,255;
+  --ion-color-primary-shade: #7a601c;
+  --ion-color-primary-tint: #967c36;
+
+  --ion-color-secondary: #c09630;
+  --ion-color-secondary-rgb: 192,150,48;
+  --ion-color-secondary-contrast: #000000;
+  --ion-color-secondary-contrast-rgb: 0,0,0;
+  --ion-color-secondary-shade: #a9842a;
+  --ion-color-secondary-tint: #c6a145;
+
+  --ion-color-tertiary: #e0b84c;
+  --ion-color-tertiary-rgb: 224,184,76;
+  --ion-color-tertiary-contrast: #000000;
+  --ion-color-tertiary-contrast-rgb: 0,0,0;
+  --ion-color-tertiary-shade: #c5a243;
+  --ion-color-tertiary-tint: #e3bf5e;
+
+  --ion-color-success: #c09630;
+  --ion-color-warning: #d4a843;
+  --ion-color-danger: #c03030;
+  --ion-color-medium: #909090;
+  --ion-color-light: #f0f0f0;
+
+  --ion-background-color: #201800;
+  --ion-background-color-rgb: 32,24,0;
+}

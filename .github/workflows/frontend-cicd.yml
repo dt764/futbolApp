@@ -1,0 +1,299 @@
+name: Frontend CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version para release APK (ej: 1.0.0)'
+        required: false
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-cicd.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+
+env:
+  PROJECT_ID: computacionnube2026-dt764
+  REGISTRY: europe-west1-docker.pkg.dev
+  REPO: frontend-repo
+  REGION: europe-west1
+
+jobs:
+  frontend-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: 🛡️ Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: 🔍 Run Lint
+        run: npm run lint
+
+      - name: 🔑 Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+          path: ./
+
+      - name: 🧪 Cypress component tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          working-directory: frontend
+          component: true
+          command: npm run test:ci
+
+      - name: Build
+        run: npm run build -- --configuration production
+
+      - name: 🧪 Cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          working-directory: frontend
+          start: npm run start
+          wait-on: 'http://localhost:8100'
+          command: npm run e2e:ci
+
+      - name: Resumen de tests visuales
+        run: |
+          echo "## 📊 Informe de Frontend" >> $GITHUB_STEP_SUMMARY
+          echo "**Component tests:** Ejecutados con Cypress" >> $GITHUB_STEP_SUMMARY
+          echo "**E2E tests:** Ejecutados contra build local" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 Capturas y videos en los Artefactos:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`cypress-screenshots\` (solo si fallan)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`cypress-videos\` (solo si fallan)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`frontend-build\` (dist/)" >> $GITHUB_STEP_SUMMARY
+        shell: bash
+
+      - name: 📸 Upload Cypress screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: frontend/cypress/screenshots/
+
+      - name: 📹 Upload Cypress videos on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-videos
+          path: frontend/cypress/videos/
+
+      - name: 📦 Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist/
+
+      - name: Build Docker image (Local check)
+        run: docker build -t football-frontend .
+
+  deploy-develop:
+    name: Deploy a develop
+    runs-on: ubuntu-latest
+    needs: frontend-ci
+    if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth en Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Docker para Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Configurar buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Metadata de la imagen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-frontend
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest-develop
+
+      - name: Build y Push imagen Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy a Cloud Run (develop)
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: football-frontend-develop
+          region: ${{ env.REGION }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-frontend:${{ steps.meta.outputs.version }}
+          flags: '--allow-unauthenticated'
+
+      - name: URL develop
+        run: echo "Develop desplegado en ${{ steps.deploy.outputs.url }}"
+
+  deploy-production:
+    name: Deploy a producción
+    runs-on: ubuntu-latest
+    needs: frontend-ci
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth en Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Docker para Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Configurar buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Metadata de la imagen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-frontend
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest
+
+      - name: Build y Push imagen Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy a Cloud Run (production)
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: football-frontend-production
+          region: ${{ env.REGION }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPO }}/football-frontend:${{ steps.meta.outputs.version }}
+          flags: '--allow-unauthenticated'
+
+      - name: URL producción
+        run: echo "Producción desplegada en ${{ steps.deploy.outputs.url }}"
+
+  release-apk:
+    name: Build APK + GitHub Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build web app
+        run: npm run build -- --configuration production
+        working-directory: frontend
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq android-sdk 2>/dev/null || true
+          echo "ANDROID_HOME=/usr/lib/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/lib/android-sdk" >> $GITHUB_ENV
+
+      - name: Accept licenses
+        run: |
+          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses 2>/dev/null || true
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+        working-directory: frontend
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+        working-directory: frontend/android
+
+      - name: Set APK name with version
+        id: apk
+        run: |
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          [ -z "$VERSION" ] && VERSION="$(date +%Y%m%d%H%M)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "apk_name=TactiXI-$VERSION.apk" >> $GITHUB_OUTPUT
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.apk_name }}
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: v${{ steps.apk.outputs.version }}
+          name: TactiXI v${{ steps.apk.outputs.version }}
+          body: |
+            ## TactiXI v${{ steps.apk.outputs.version }}
+
+            APK generado automáticamente desde ${{ github.sha }}
+          files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          generate_release_notes: true

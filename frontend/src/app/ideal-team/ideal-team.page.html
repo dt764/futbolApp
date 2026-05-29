@@ -1,0 +1,157 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Equipo Ideal <app-admin-badge/></ion-title>
+    <ion-buttons slot="end">
+      <app-auth-header></app-auth-header>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="ideal-content">
+    <div class="config-section">
+      <div class="section-card">
+        <div class="section-icon">
+          <ion-icon name="settings-outline"></ion-icon>
+        </div>
+        <h3>Generar equipo ideal con IA</h3>
+        <p class="section-desc">Elige la formación y la fuente de jugadores, luego deja que la IA seleccione el mejor once</p>
+
+        <div class="config-row">
+          <div class="config-label">
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>Formación</span>
+          </div>
+          <div class="formation-chips">
+            @for (f of formations; track f) {
+              <ion-chip
+                [class.chip-active]="selectedFormation === f"
+                (click)="selectedFormation = selectedFormation === f ? '' : f"
+              >
+                {{ f }}
+              </ion-chip>
+            }
+            @if (selectedFormation) {
+              <ion-chip
+                color="medium"
+                (click)="selectedFormation = ''"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+                Limpiar
+              </ion-chip>
+            }
+          </div>
+        </div>
+
+        <div class="config-row">
+          <div class="config-label">
+            <ion-icon name="people-outline"></ion-icon>
+            <span>Jugadores</span>
+          </div>
+          <ion-segment [(ngModel)]="source" class="source-segment">
+            <ion-segment-button value="database">
+              <ion-icon name="server-outline"></ion-icon>
+              <ion-label>Base de datos</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="fantasy">
+              <ion-icon name="star-outline"></ion-icon>
+              <ion-label>Predeterminados</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="generate-btn"
+          (click)="generate()"
+          [disabled]="loading"
+        >
+          @if (loading) {
+            <ion-spinner slot="start"></ion-spinner>
+          }
+          @if (!loading) {
+            <ion-icon name="sparkles-outline" slot="start"></ion-icon>
+          }
+          {{ loading ? 'Generando...' : 'Generar equipo ideal' }}
+        </ion-button>
+      </div>
+    </div>
+
+    @if (error) {
+      <ion-note color="danger" class="error-note">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ error }}
+      </ion-note>
+    }
+
+    @if (team) {
+      <div class="team-header">
+        <div class="formation-badge">
+          <ion-icon name="shirt-outline"></ion-icon>
+          <span>{{ teamFormation || 'Sin formación' }}</span>
+        </div>
+        <span class="player-count">{{ team.length }} jugadores</span>
+      </div>
+
+      <div class="player-grid">
+        @for (p of sortedTeam(); track p.name; let i = $index) {
+          <div
+            class="player-card"
+            [class.starting]="i < 11"
+          >
+            <div class="player-card-inner">
+              <div class="player-pos-badge {{ p.position.toLowerCase() }}">
+                <span class="pos-abbr">{{ positionAbbr(p.position) }}</span>
+              </div>
+              <div class="player-info">
+                <h4>{{ p.name }}</h4>
+                <p class="player-position">{{ p.position }}</p>
+                @if (p.team || p.nationality) {
+                  <p class="player-meta">
+                    @if (p.team) {
+                      <span>{{ p.team }}</span>
+                    }
+                    @if (p.team && p.nationality) {
+                      <span> · </span>
+                    }
+                    @if (p.nationality) {
+                      <span>{{ p.nationality }}</span>
+                    }
+                  </p>
+                }
+              </div>
+              @if (i < 11) {
+                <div class="player-number">{{ i + 1 }}</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (reasoning) {
+        <div class="reasoning-card">
+          <div class="reasoning-header">
+            <ion-icon name="chatbubbles-outline"></ion-icon>
+            <span>Justificación de la IA</span>
+          </div>
+          <p>{{ reasoning }}</p>
+        </div>
+      }
+    }
+
+    @if (!team && !loading && !error) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <ion-icon name="football-outline"></ion-icon>
+        </div>
+        <h3>Sin equipo aún</h3>
+        <p>Configura los parámetros y pulsa "Generar equipo ideal" para ver el resultado</p>
+      </div>
+    }
+  </div>
+</ion-content>

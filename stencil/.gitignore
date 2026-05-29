@@ -1,0 +1,13 @@
+# Stencil build cache
+.stencil
+
+# Build output
+dist
+loader
+www
+
+# Dependencies
+node_modules
+
+# Generated docs
+src/components/**/readme.md

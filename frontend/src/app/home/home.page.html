@@ -1,0 +1,59 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
+    </ion-buttons>
+    <ion-title class="header-title">TactiXI <app-admin-badge/></ion-title>
+    <ion-buttons slot="end">
+      <app-auth-header></app-auth-header>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="hero">
+    <img src="assets/icon.png" alt="TactiXI" class="hero-icon" />
+    <div class="hero-text">
+      <h1>TactiXI</h1>
+      <p>Donde la táctica encuentra su once ideal</p>
+      <p class="hero-sub">
+        Explora, importa y gestiona jugadores de todo el mundo. Descubre tu alineación perfecta
+        con inteligencia artificial, mantente al día con las últimas noticias y construye
+        el equipo que siempre soñaste dirigir. El fútbol nunca fue tan estratégico.
+      </p>
+    </div>
+  </div>
+
+  <div class="cards-container">
+    <ion-card button routerLink="/players">
+      <ion-card-header>
+        <ion-icon name="people-outline"></ion-icon>
+        <ion-card-title>Jugadores</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Explora la base de datos de jugadores, filtra por equipo o liga, y accede a los detalles.
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card button routerLink="/ideal-team">
+      <ion-card-header>
+        <ion-icon name="trophy-outline"></ion-icon>
+        <ion-card-title>Equipo Ideal</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Genera un equipo ideal con IA a partir de tus jugadores o de jugadores predeterminados.
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-icon name="newspaper-outline"></ion-icon>
+        <ion-card-title>Noticias</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-note>Próximamente — Noticias de fútbol vía CORBA.</ion-note>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

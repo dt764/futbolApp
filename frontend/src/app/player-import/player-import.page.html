@@ -1,0 +1,186 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
+      <ion-back-button defaultHref="/players"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Importar jugadores <app-admin-badge/></ion-title>
+    <ion-buttons slot="end">
+      <app-auth-header></app-auth-header>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="import-content">
+    <div class="import-layout">
+      <div class="import-sidebar">
+        <div class="search-card">
+          <div class="search-card-icon">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+          <h3>Buscar en API externa</h3>
+          <p class="search-desc">Encuentra jugadores de la API de fútbol e impórtalos a tu base de datos</p>
+
+          <div class="search-fields">
+            <ion-item [class.item-has-error]="nameError">
+              <ion-label position="floating">Nombre</ion-label>
+              <ion-input [(ngModel)]="search.name" (ionBlur)="nameError = ''" required></ion-input>
+            </ion-item>
+
+            <ion-item [class.item-has-error]="teamError">
+              <ion-label position="floating">Equipo *</ion-label>
+              <ion-input [(ngModel)]="search.team" (ionBlur)="teamError = ''" required></ion-input>
+            </ion-item>
+            @if (teamError) {
+              <ion-note color="danger" class="field-error">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                {{ teamError }}
+              </ion-note>
+            }
+
+            <ion-item>
+              <ion-label position="floating">Liga (opcional)</ion-label>
+              <ion-input [(ngModel)]="search.league"></ion-input>
+            </ion-item>
+          </div>
+
+          <ion-button
+            expand="block"
+            class="search-btn"
+            (click)="doSearch()"
+            [disabled]="loading"
+          >
+            @if (loading) {
+              <ion-spinner slot="start"></ion-spinner>
+            }
+            @if (!loading) {
+              <ion-icon name="search-circle-outline" slot="start"></ion-icon>
+            }
+            {{ loading ? 'Buscando...' : 'Buscar' }}
+          </ion-button>
+        </div>
+
+      </div>
+
+      <div class="import-main">
+        @if (!searched && !loading && results.length === 0 && !error) {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <ion-icon name="cloud-download-outline"></ion-icon>
+            </div>
+            <h3>Importar jugadores</h3>
+            <p>Busca jugadores por nombre y equipo en la API externa, luego impórtalos a tu base de datos</p>
+          </div>
+        }
+        @if (error) {
+          <ion-note color="danger" class="error-note">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ error }}
+          </ion-note>
+        }
+
+        @if (importError) {
+          <ion-note color="danger" class="error-note">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ importError }}
+          </ion-note>
+        }
+
+        @if (importSuccess) {
+          <ion-note color="success" class="success-note">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            {{ importSuccess }}
+          </ion-note>
+        }
+
+        @if (searched && !loading && results.length === 0 && !error) {
+          <div class="empty-results">
+            <ion-icon name="search-outline"></ion-icon>
+            <p>No se encontraron jugadores. Prueba con otro nombre o equipo.</p>
+          </div>
+        }
+
+        @if (results.length > 0) {
+          <div class="results-header">
+            <div class="results-title">
+              <ion-icon name="people-outline"></ion-icon>
+              <span>{{ results.length }} resultado{{ results.length !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="results-actions">
+              <ion-button fill="clear" size="small" color="tertiary" (click)="toggleAll()">
+                <ion-icon [name]="allSelected() ? 'checkbox' : 'square-outline'" slot="start"></ion-icon>
+                {{ allSelected() ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+              </ion-button>
+              <ion-button
+                fill="solid"
+                size="small"
+                color="success"
+                [disabled]="selectedCount() === 0 || bulkImporting"
+                (click)="importSelected()"
+              >
+                @if (bulkImporting) {
+                  <ion-spinner slot="start"></ion-spinner>
+                }
+                @if (!bulkImporting) {
+                  <ion-icon name="download-outline" slot="start"></ion-icon>
+                }
+                Importar {{ selectedCount() > 0 ? '(' + selectedCount() + ')' : '' }}
+              </ion-button>
+            </div>
+          </div>
+
+          <div class="results-grid">
+            @for (p of results; track p.player.id) {
+              <div
+                class="result-card"
+                [class.selected]="selectedIds.has(p.player.id)"
+                (click)="toggleSelection(p.player.id)"
+              >
+                <div class="result-card-inner">
+                  <div class="checkbox-col">
+                    <ion-icon
+                      [name]="selectedIds.has(p.player.id) ? 'checkbox' : 'square-outline'"
+                      color="tertiary"
+                    ></ion-icon>
+                  </div>
+                  <div class="photo-col">
+                    <div class="player-photo">
+                      @if (p.player.photo) {
+                        <img [src]="p.player.photo" [alt]="p.player.name" />
+                      } @else {
+                        <div class="photo-placeholder">{{ (p.player.firstname || p.player.name || '?').charAt(0) }}</div>
+                      }
+                    </div>
+                  </div>
+                  <div class="info-col">
+                    <h4>{{ getPlayerName(p) }}</h4>
+                    <p class="player-pos">{{ getPosition(p) }}</p>
+                    @if (getTeam(p)) {
+                      <p class="player-team">
+                        <ion-icon name="shield-outline"></ion-icon>
+                        {{ getTeam(p) }}
+                      </p>
+                    }
+                    @if (getLeague(p)) {
+                      <p class="player-league">
+                        <ion-icon name="trophy-outline"></ion-icon>
+                        {{ getLeague(p) }}
+                      </p>
+                    }
+                  </div>
+                  <div class="import-col">
+                    @if (importingId === p.player.id) {
+                      <ion-spinner class="import-spinner"></ion-spinner>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,116 @@
+# DEPLOYED_BY_CI - 2026
+networks:
+  futbol-network:
+    driver: bridge
+
+services:
+  mi-base-datos:
+    image: postgres:15-alpine
+    container_name: mi-base-datos
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-usuario_futbol}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      POSTGRES_DB: db_sistema
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario_futbol -d db_sistema"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - futbol-network
+
+  config-server:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/config-server-repo/config-server:${IMAGE_TAG:-latest-develop}
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8888/actuator/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+    networks:
+      - futbol-network
+
+  service-registry:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/service-registry-repo/service-registry:${IMAGE_TAG:-latest-develop}
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    # 🔄 CORRECCIÓN ALPINE: Conservada tal cual tuya, funciona impecable.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    depends_on:
+      config-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - futbol-network
+
+  gateway:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/gateway-repo/gateway:${IMAGE_TAG:-latest-develop}
+    container_name: gateway
+    ports:
+      - "8083:8083" # Único punto de entrada a los microservicios
+    environment:
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - futbol-network
+
+  player-service:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/player-service-repo/player-service:${IMAGE_TAG:-latest-develop}
+    container_name: player-service
+    # 🚫 PUERTOS PRIVADOS: Ya no se exponen al exterior (adiós ataques bots)
+    environment:
+      CONFIG_SERVER_HOST: ${CONFIG_SERVER_HOST:-config-server}
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://mi-base-datos:5432/db_sistema}
+      DB_USERNAME: ${DB_USERNAME:-usuario_futbol}
+      DB_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64:-}
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY:-}
+      API_FOOTBALL_KEY: ${API_FOOTBALL_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    depends_on:
+      mi-base-datos:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - futbol-network
+
+  comment-service:
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/comment-service-repo/comment-service:${IMAGE_TAG:-latest-develop}
+    container_name: comment-service
+    # 🚫 PUERTOS PRIVADOS: Protegido del tráfico externo malicioso
+    environment:
+      CONFIG_SERVER_HOST: ${CONFIG_SERVER_HOST:-config-server}
+      EUREKA_URI: ${EUREKA_URI:-http://service-registry:8761/eureka/}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://mi-base-datos:5432/db_sistema}
+      DB_USERNAME: ${DB_USERNAME:-usuario_futbol}
+      DB_PASSWORD: ${DB_PASSWORD:-password_seguro123}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64:-}
+    depends_on:
+      mi-base-datos:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      service-registry:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - futbol-network

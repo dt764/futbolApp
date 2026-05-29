@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
+      <ion-back-button defaultHref="/players"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Detalles de jugador <app-admin-badge/></ion-title>
+    <ion-buttons slot="end">
+      <app-auth-header></app-auth-header>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <player-detail
+    [player]="player()"
+    [comments]="comments"
+    [isAdmin]="auth.appUser()?.role === 'admin'"
+    [loggedInUser]="auth.appUser() ? (auth.appUser()?.displayName || auth.appUser()?.email || 'Usuario') : ''"
+    [loading]="loading()"
+    [commentLoading]="commentLoading"
+    [error]="error"
+    (addComment)="handleAddComment($any($event))"
+    (deleteComment)="handleDeleteComment($any($event))"
+    (editPlayer)="handleEditPlayer()"
+    (deletePlayer)="handleDeletePlayer()"
+  ></player-detail>
+</ion-content>

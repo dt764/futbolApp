@@ -1,0 +1,139 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <img src="assets/icon.png" alt="TactiXI" class="header-icon" />
+    </ion-buttons>
+    <ion-title class="header-title">Jugadores <app-admin-badge/></ion-title>
+    <ion-buttons slot="end">
+      <app-auth-header></app-auth-header>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Jugadores</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Mobile tab toggle -->
+  <ion-segment [value]="mobileTab" (ionChange)="onTabChange($event)" class="mobile-tabs">
+    <ion-segment-button value="search">
+      <ion-icon name="search-outline"></ion-icon>
+      <ion-label>Buscar</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="add">
+      <ion-icon name="add-circle-outline"></ion-icon>
+      <ion-label>Añadir</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div class="top-boxes">
+    <!-- Filter box -->
+    <div class="filter-box" [class.hidden-mobile]="mobileTab === 'add'">
+      <h3 class="filter-title">Filtrar jugadores</h3>
+      @if (isLoggedIn) {
+        <ion-segment [value]="filterMode" (ionChange)="onFilterChange($event)" class="filter-segment">
+          <ion-segment-button value="all">
+            <ion-label>Todos</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="mine">
+            <ion-label>Mis jugadores</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      }
+
+      <div class="filter-row">
+        <ion-item class="filter-item">
+          <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="filterForm.name" (ionInput)="search()"></ion-input>
+        </ion-item>
+        <ion-item class="filter-item">
+          <ion-input label="Equipo" labelPlacement="floating" [(ngModel)]="filterForm.team" (ionInput)="search()"></ion-input>
+        </ion-item>
+        <ion-item class="filter-item">
+          <ion-input label="Liga" labelPlacement="floating" [(ngModel)]="filterForm.league" (ionInput)="search()"></ion-input>
+        </ion-item>
+      </div>
+      <div class="filter-row">
+        <ion-item class="filter-item">
+          <ion-input label="Fecha alta desde" type="date" labelPlacement="floating" [max]="maxDate" [(ngModel)]="filterForm.createdFrom" (ionChange)="search()"></ion-input>
+        </ion-item>
+        <ion-item class="filter-item">
+          <ion-input label="Fecha alta hasta" type="date" labelPlacement="floating" [max]="maxDate" [(ngModel)]="filterForm.createdTo" (ionChange)="search()"></ion-input>
+        </ion-item>
+      </div>
+    </div>
+
+    <!-- Action box -->
+    <div class="action-box" [class.hidden-mobile]="mobileTab === 'search'">
+      <ion-card class="action-card">
+        <ion-card-header>
+          <ion-icon name="person-add-outline"></ion-icon>
+          <ion-card-title>Añade jugadores a tu equipo</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p>Importa desde una API externa o créalos manualmente.</p>
+          <div class="action-buttons">
+            <ion-button routerLink="/players/create" expand="block" fill="solid" color="primary">
+              <ion-icon name="create-outline" slot="start"></ion-icon>
+              Crear
+            </ion-button>
+            <ion-button routerLink="/players/import" expand="block" fill="solid" color="tertiary">
+              <ion-icon name="cloud-download-outline" slot="start"></ion-icon>
+              Importar
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  @if (error()) {
+    <ion-note color="danger" class="ion-padding-start ion-padding-top">
+      {{ error() }}
+    </ion-note>
+  }
+
+  @if (!loading() && players().length === 0 && !error()) {
+    <ion-note class="ion-padding-start ion-padding-top">
+      No se encontraron jugadores.
+    </ion-note>
+  }
+
+  <!-- Player grid: single column on mobile, multi-column on desktop -->
+  <div class="player-grid">
+    @for (p of players(); track p._id) {
+      <ion-card button routerLink="/players/{{ p._id }}" class="player-card">
+        <div class="player-card-inner">
+          <div class="player-card-avatar">
+            @if (p.photo) {
+              <img [src]="p.photo" [alt]="p.name" />
+            } @else {
+              <div class="avatar-placeholder">{{ p.name.charAt(0) }}</div>
+            }
+          </div>
+          <div class="player-card-info">
+            <h3>{{ getPlayerName(p) }}</h3>
+            <p>{{ p.position }}@if (p.team) { <span> &middot; {{ p.team }}</span> }</p>
+            @if (p.nationality) {
+              <p>{{ p.nationality }}</p>
+            }
+            @if (p.createdAt) {
+              <p class="date-badge"><ion-icon name="calendar-outline"></ion-icon> {{ formatDate(p.createdAt) }}</p>
+            }
+          </div>
+        </div>
+      </ion-card>
+    }
+  </div>
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)" threshold="100px">
+    <ion-infinite-scroll-content loadingText="Cargando más jugadores..."></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  @if (loading() && players().length === 0) {
+    <ion-spinner class="center-spinner"></ion-spinner>
+  }
+</ion-content>
