@@ -2,6 +2,10 @@ name: Frontend CI/CD
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version para release APK (ej: 1.0.0)'
+        required: false
   push:
     branches: [main, develop]
     paths:
@@ -216,3 +220,80 @@ jobs:
 
       - name: URL producción
         run: echo "Producción desplegada en ${{ steps.deploy.outputs.url }}"
+
+  release-apk:
+    name: Build APK + GitHub Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build web app
+        run: npm run build -- --configuration production
+        working-directory: frontend
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq android-sdk 2>/dev/null || true
+          echo "ANDROID_HOME=/usr/lib/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/lib/android-sdk" >> $GITHUB_ENV
+
+      - name: Accept licenses
+        run: |
+          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses 2>/dev/null || true
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+        working-directory: frontend
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+        working-directory: frontend/android
+
+      - name: Set APK name with version
+        id: apk
+        run: |
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          [ -z "$VERSION" ] && VERSION="$(date +%Y%m%d%H%M)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "apk_name=TactiXI-$VERSION.apk" >> $GITHUB_OUTPUT
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.apk_name }}
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: v${{ steps.apk.outputs.version }}
+          name: TactiXI v${{ steps.apk.outputs.version }}
+          body: |
+            ## TactiXI v${{ steps.apk.outputs.version }}
+
+            APK generado automáticamente desde ${{ github.sha }}
+          files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          generate_release_notes: true

@@ -17,11 +17,15 @@ spring:
         - id: player-service
           uri: lb://player-service
           predicates:
-            - Path=/api/players/**,/api-docs/player-service,/api/ideal-team/**,/api/auth/**
+            - Path=/api/players/**,/api-docs/player-service,/api/ideal-team/**,/api/auth/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/api-docs
+          filters:
+            - RewritePath=/api-docs/player-service,/api-docs
         - id: comment-service
           uri: lb://comment-service
           predicates:
             - Path=/api/comments/**,/api-docs/comment-service
+          filters:
+            - RewritePath=/api-docs/comment-service,/api-docs
       discovery:
         locator:
           enabled: true
