@@ -8,6 +8,8 @@ on:
         required: false
   push:
     branches: [main, develop]
+    tags:
+      - 'v*'
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-cicd.yml'
@@ -254,18 +256,25 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq android-sdk 2>/dev/null || true
-          echo "ANDROID_HOME=/usr/lib/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=/usr/lib/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ -f "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          fi
 
-      - name: Accept licenses
+      - name: Add & Sync Capacitor Android
         run: |
-          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses 2>/dev/null || true
-
-      - name: Sync Capacitor
-        run: npx cap sync android
+          if [ ! -d "android" ]; then
+            npx cap add android
+          else
+            npx cap sync android
+          fi
         working-directory: frontend
+
+      - name: Write local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+        working-directory: frontend/android
 
       - name: Build debug APK
         run: ./gradlew assembleDebug
@@ -274,10 +283,11 @@ jobs:
       - name: Set APK name with version
         id: apk
         run: |
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
-          [ -z "$VERSION" ] && VERSION="$(date +%Y%m%d%H%M)"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "apk_name=TactiXI-$VERSION.apk" >> $GITHUB_OUTPUT
+          RAW_VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          RAW_VERSION="${RAW_VERSION#v}"
+          [ -z "$RAW_VERSION" ] && RAW_VERSION="$(date +%Y%m%d%H%M)"
+          echo "version=$RAW_VERSION" >> $GITHUB_OUTPUT
+          echo "apk_name=TactiXI-v$RAW_VERSION.apk" >> $GITHUB_OUTPUT
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
