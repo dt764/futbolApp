@@ -8,7 +8,7 @@ const authRoutes = require('./app_api/routes/authRoutes');
 const playerRoutes = require('./app_api/routes/playerRoutes');
 const commentRoutes = require('./app_api/routes/commentRoutes');
 const idealTeamRoutes = require('./app_api/routes/idealTeamRoutes');
-const swaggerSpec = require('./app_api/config/swagger');
+const { generateSpec } = require('./app_api/config/swagger');
 
 const app = express();
 
@@ -17,7 +17,15 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-docs/swagger.json', (req, res) => {
+  const protocol = req.get('X-Forwarded-Proto') || req.protocol;
+  const host = req.get('X-Forwarded-Host') || req.get('host');
+  res.json(generateSpec(`${protocol}://${host}`));
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, {
+  swaggerOptions: { url: '/api-docs/swagger.json' },
+}));
 
 app.get('/health', (req, res) => {
   res.status(200).json({
