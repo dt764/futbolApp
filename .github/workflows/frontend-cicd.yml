@@ -272,6 +272,17 @@ jobs:
           fi
         working-directory: frontend
 
+      - name: Copy custom icons & splash to Android project
+        run: |
+          if [ -d "resources/android" ]; then
+            cp -r resources/android/mipmap-* android/app/src/main/res/
+            cp -r resources/android/drawable android/app/src/main/res/
+            echo "✅ Iconos copiados"
+          else
+            echo "⚠️ No hay resources/android, se usan los default"
+          fi
+        working-directory: frontend
+
       - name: Write local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
         working-directory: frontend/android
