@@ -17,7 +17,7 @@ spring:
         - id: player-service
           uri: lb://player-service
           predicates:
-            - Path=/api/players/**,/api-docs/player-service,/api/ideal-team/**,/api/auth/**,/swagger-ui.html,/swagger-ui/**,/webjars/**,/api-docs
+            - Path=/api/players/**,/api-docs/player-service,/api/ideal-team/**,/api/auth/**
           filters:
             - RewritePath=/api-docs/player-service,/api-docs
         - id: comment-service
@@ -30,6 +30,15 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: player-service
+        url: /api-docs/player-service
+      - name: comment-service
+        url: /api-docs/comment-service
+    path: /swagger-ui.html
 
 eureka:
   client:

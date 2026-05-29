@@ -73,11 +73,28 @@ jobs:
 
       - name: Resumen de cobertura
         run: |
-          echo "## 📊 Informe de Backend Node" >> $GITHUB_STEP_SUMMARY
-          if [ -f coverage/lcov-report/index.html ]; then
-            COV=$(grep -oP '<span class="strong">\K[\d.]+(?=%)' coverage/lcov-report/index.html | head -1)
-            echo "**Cobertura:** ${COV}%" >> $GITHUB_STEP_SUMMARY
+          HTML="coverage/lcov-report/index.html"
+          echo "## 📊 Backend Node" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f "$HTML" ]; then
+            awk '
+              /<span class="strong">/ {
+                gsub(/<[^>]+>/, "")
+                gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+                if (match($0, /^[0-9.]+%/)) {
+                  pct = substr($0, RSTART, RLENGTH)
+                  labels[++count] = (count==1?"Sentencias":count==2?"Ramas":count==3?"Funciones":"Líneas")
+                  pcts[count] = pct
+                }
+              }
+              END {
+                print "| Métrica | Cobertura |" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+                print "|---------|----------|" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+                for(i=1; i<=count; i++) print "| " labels[i] " | " pcts[i] " |" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              }
+            ' "$HTML"
           fi
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "📁 [Descargar reportes](node-reports) en los Artefactos" >> $GITHUB_STEP_SUMMARY
         shell: bash
 

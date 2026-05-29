@@ -54,14 +54,38 @@ jobs:
 
       - name: Resumen de cobertura
         run: |
-          echo "## Informe de ${{ matrix.service }}" >> $GITHUB_STEP_SUMMARY
-          if [ -f target/site/jacoco/index.html ]; then
-            COV=$(grep -oP 'Total[^%]*?(\d+\.?\d*)%' target/site/jacoco/index.html | tail -1)
-            echo "**Cobertura:** $COV" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "**Tests:** Ejecutados en verify" >> $GITHUB_STEP_SUMMARY
+          HTML="target/site/jacoco/index.html"
+          echo "## ☕ ${{ matrix.service }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "[Descargar reportes](\`${{ matrix.service }}-reports\`) en los Artefactos" >> $GITHUB_STEP_SUMMARY
+          if [ -f "$HTML" ]; then
+            awk '
+              /<tfoot>/,/<\/tfoot>/ {
+                if (/<td.*?class="[^"]*ctr[^"]*"/) {
+                  gsub(/<[^>]+>/, "")
+                  gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+                  if (match($0, /^[0-9,]+/)) {
+                    covered = substr($0, RSTART, RLENGTH)
+                    rest = substr($0, RLENGTH+1)
+                    if (match(rest, /of[[:space:]]*([0-9,]+)/)) {
+                      total = substr(rest, RSTART+3)
+                      gsub(/^[[:space:]]+/, "", total)
+                    }
+                  }
+                  if (match($0, /[0-9]+\.[0-9]+%|[0-9]+%/)) {
+                    pct = substr($0, RSTART, RLENGTH)
+                    lines[++count] = (count==1?"Instrucciones":count==2?"Ramas":count==3?"Líneas":count==4?"Métodos":"Clases") "|" pct
+                  }
+                }
+              }
+              END {
+                print "| Métrica | Cobertura |" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+                print "|---------|----------|" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+                for(i=1; i<=count; i++) print "| " lines[i] " |" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              }
+            ' "$HTML"
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 [Descargar reportes](\`${{ matrix.service }}-reports\`) en los Artefactos" >> $GITHUB_STEP_SUMMARY
         shell: bash
         working-directory: backend-java/${{ matrix.service }}
 
