@@ -38,6 +38,21 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/register")
+    @Operation(summary = "Registrar nuevo usuario")
+    public ResponseEntity<?> register(@Valid @RequestBody LoginRequest request) {
+        try {
+            AuthResponse response = authService.register(
+                request.getEmail(), request.getPassword(), request.getEmail()
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (FirebaseAuthService.AuthException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Obtener usuario actual")
     public ResponseEntity<?> me() {

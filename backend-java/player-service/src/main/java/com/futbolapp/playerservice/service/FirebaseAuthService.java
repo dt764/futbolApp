@@ -98,6 +98,52 @@ public class FirebaseAuthService {
         return (String) response.getBody().get("idToken");
     }
 
+    public AuthResponse register(String email, String password, String displayName) {
+        if (firebaseApiKey == null || firebaseApiKey.isEmpty()) {
+            throw new IllegalArgumentException("FIREBASE_API_KEY no configurada");
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + firebaseApiKey;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("email", email);
+        body.put("password", password);
+        body.put("returnSecureToken", true);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            throw new AuthException("Error al registrar en Firebase");
+        }
+
+        String idToken = (String) response.getBody().get("idToken");
+
+        try {
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+            String uid = decodedToken.getUid();
+
+            User user = userRepository.findByUid(uid).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setUid(uid);
+                newUser.setEmail(email);
+                newUser.setDisplayName(displayName != null ? displayName : email);
+                return userRepository.save(newUser);
+            });
+
+            return new AuthResponse(idToken, new AuthResponse.UserInfo(
+                user.getUid(), user.getEmail(), user.getDisplayName(), user.getRole().name()
+            ));
+        } catch (Exception e) {
+            throw new AuthException("Error al verificar token tras registro");
+        }
+    }
+
     public static class AuthException extends RuntimeException {
         public AuthException(String message) { super(message); }
     }
