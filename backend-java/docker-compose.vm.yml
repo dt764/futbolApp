@@ -23,7 +23,7 @@ services:
       - futbol-network
 
   config-server:
-    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/config-server-repo/config-server:latest-develop
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/config-server-repo/config-server:${IMAGE_TAG:-latest-develop}
     container_name: config-server
     ports:
       - "8888:8888"
@@ -37,7 +37,7 @@ services:
       - futbol-network
 
   service-registry:
-    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/service-registry-repo/service-registry:latest-develop
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/service-registry-repo/service-registry:${IMAGE_TAG:-latest-develop}
     container_name: service-registry
     ports:
       - "8761:8761"
@@ -55,7 +55,7 @@ services:
       - futbol-network
 
   gateway:
-    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/gateway-repo/gateway:latest-develop
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/gateway-repo/gateway:${IMAGE_TAG:-latest-develop}
     container_name: gateway
     ports:
       - "8083:8083" # Único punto de entrada a los microservicios
@@ -69,7 +69,7 @@ services:
       - futbol-network
 
   player-service:
-    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/player-service-repo/player-service:latest-develop
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/player-service-repo/player-service:${IMAGE_TAG:-latest-develop}
     container_name: player-service
     # 🚫 PUERTOS PRIVADOS: Ya no se exponen al exterior (adiós ataques bots)
     environment:
@@ -94,7 +94,7 @@ services:
       - futbol-network
 
   comment-service:
-    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/comment-service-repo/comment-service:latest-develop
+    image: europe-west1-docker.pkg.dev/computacionnube2026-dt764/comment-service-repo/comment-service:${IMAGE_TAG:-latest-develop}
     container_name: comment-service
     # 🚫 PUERTOS PRIVADOS: Protegido del tráfico externo malicioso
     environment:

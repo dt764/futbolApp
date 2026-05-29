@@ -193,7 +193,7 @@ jobs:
       - name: Deploy
         uses: appleboy/ssh-action@v1
         with:
-          envs: REGISTRY
+          envs: REGISTRY, IMAGE_TAG
           host: ${{ secrets.VM_HOST_PRODUCTION }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
@@ -201,6 +201,7 @@ jobs:
             set -e
             cd ~/proyecto-comun-2526-futbol
             mv docker-compose.vm.yml docker-compose.yml
+            export IMAGE_TAG=latest-production
             gcloud auth configure-docker $REGISTRY --quiet
             docker compose pull
             docker compose up -d
